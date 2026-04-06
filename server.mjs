@@ -23,11 +23,8 @@ const openAiInputCostPerMillion = Number(process.env.OPENAI_INPUT_COST_PER_MILLI
 const openAiOutputCostPerMillion = Number(process.env.OPENAI_OUTPUT_COST_PER_MILLION || 2);
 const billingTiers = [
   { id: "free", name: "Free", credits: 1, priceLabel: "Free", priceCents: 0, stripePriceId: "", kind: "free" },
-  { id: "starter", name: "Starter", credits: 5, priceLabel: "$4.99", priceCents: 499, stripePriceId: process.env.STRIPE_PRICE_ID_STARTER || "", kind: "paid" },
-  { id: "spark", name: "Spark", credits: 15, priceLabel: "$9.99", priceCents: 999, stripePriceId: process.env.STRIPE_PRICE_ID_SPARK || "", kind: "paid" },
-  { id: "dream", name: "Dream", credits: 35, priceLabel: "$19.99", priceCents: 1999, stripePriceId: process.env.STRIPE_PRICE_ID_DREAM || "", kind: "paid" },
-  { id: "castle", name: "Castle", credits: 75, priceLabel: "$34.99", priceCents: 3499, stripePriceId: process.env.STRIPE_PRICE_ID_CASTLE || "", kind: "paid" },
-  { id: "galaxy", name: "Galaxy", credits: 150, priceLabel: "$59.99", priceCents: 5999, stripePriceId: process.env.STRIPE_PRICE_ID_GALAXY || "", kind: "paid" }
+  { id: "starter", name: "Tier 1", credits: 5, priceLabel: "$3.00", priceCents: 300, stripePriceId: process.env.STRIPE_PRICE_ID_STARTER || "", kind: "paid" },
+  { id: "spark", name: "Tier 3", credits: 15, priceLabel: "$5.00", priceCents: 500, stripePriceId: process.env.STRIPE_PRICE_ID_SPARK || "", kind: "paid" }
 ];
 
 const datasetSpecs = [
