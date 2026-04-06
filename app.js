@@ -1,3 +1,24 @@
+const quickStoryOptions = {
+  LostAtWalmart: {
+    id: "LostAtWalmart",
+    label: "Lost at Walmart",
+    mode: "Choose Your Way",
+    description: "A quick story about getting separated in a big store and finding your way back."
+  },
+  ImASuperhero: {
+    id: "ImASuperhero",
+    label: "I'm a Super Hero",
+    mode: "Choose Your Way",
+    description: "A quick story where the kid discovers powers and chooses how to help."
+  },
+  AliensTookMe: {
+    id: "AliensTookMe",
+    label: "Aliens Took Me",
+    mode: "Choose Your Way",
+    description: "A quick story about a surprise alien ride and safe choices home."
+  }
+};
+
 const fallbackConfig = {
   ageRanges: {
     "4-5": "500-700 words",
@@ -10,17 +31,29 @@ const fallbackConfig = {
       label: "Adventure",
       family: "Classic",
       description: "Fast-moving quests with bright, playful discoveries.",
-      recommendedMode: "Classic",
-      implementationStage: "live"
+      recommendedMode: "Classic"
     },
     {
-      id: "AdventureChooseYourWay",
-      label: "Adventure Choose Your Way",
-      family: "Interactive",
-      description: "A branching quest with kid-friendly choices at every turn.",
-      recommendedMode: "Choose Your Way",
-      implementationStage: "planned"
-    }
+      id: "Bedtime",
+      label: "Bedtime",
+      family: "Classic",
+      description: "Soft, cozy winding-down stories for sleepy readers.",
+      recommendedMode: "Classic"
+    },
+    {
+      id: "Mystery",
+      label: "Mystery",
+      family: "Classic",
+      description: "Gentle clues, clever teamwork, and a happy reveal.",
+      recommendedMode: "Classic"
+    },
+    ...Object.values(quickStoryOptions).map((entry) => ({
+      id: entry.id,
+      label: entry.label,
+      family: "Choose Your Way",
+      description: entry.description,
+      recommendedMode: entry.mode
+    }))
   ]
 };
 
@@ -34,23 +67,34 @@ const billingSummary = document.querySelector("#billing-summary");
 const tierList = document.querySelector("#tier-list");
 const storyTypeSummary = document.querySelector("#story-type-summary");
 const modeSummary = document.querySelector("#mode-summary");
-const storyFamilySelect = document.querySelector("#story-family");
-const storyTypeSelect = document.querySelector("#story-type-select");
+
+const classicTypeSelect = document.querySelector("#classic-type-select");
+const cywTypeSelect = document.querySelector("#cyw-type-select");
 const storyModeHidden = document.querySelector("#story-mode-hidden");
+const storyTypeHidden = document.querySelector("#story-type-hidden");
+
+const classicThemeGroup = document.querySelector("#classic-theme-group");
+const classicWorldGroup = document.querySelector("#classic-world-group");
+const classicLookGroup = document.querySelector("#classic-look-group");
 
 form.addEventListener("submit", handleGenerate);
 form.addEventListener("change", updateUiState);
-storyFamilySelect.addEventListener("change", () => {
-  renderStoryExperiences();
+classicTypeSelect.addEventListener("change", () => {
+  if (classicTypeSelect.value) {
+    cywTypeSelect.value = "";
+  }
+  updateUiState();
+});
+cywTypeSelect.addEventListener("change", () => {
   updateUiState();
 });
 
 initialize();
 
 async function initialize() {
-  renderStoryExperiences();
-  updateUiState();
   await loadStatus();
+  populateStoryTypeMenus();
+  updateUiState();
   await loadBillingStatus();
   await checkCheckoutReturn();
 }
@@ -66,8 +110,6 @@ async function loadStatus() {
 
     if (data.config) {
       appConfig = normalizeConfig(data.config);
-      renderStoryExperiences();
-      updateUiState();
     }
   } catch (error) {
     storyOutput.innerHTML = `
@@ -89,45 +131,53 @@ function normalizeConfig(config) {
   };
 }
 
-function getFamilyExperiences(selectedFamily) {
-  const family = selectedFamily || "Classic";
+function populateStoryTypeMenus() {
+  const classicIds = ["Adventure", "Bedtime", "Mystery"];
+  const cywIds = ["LostAtWalmart", "ImASuperhero", "AliensTookMe"];
 
-  return appConfig.storyExperiences.filter((experience) => {
-    const recommendedMode = (experience.recommendedMode || "").toLowerCase();
+  const byId = new Map(appConfig.storyExperiences.map((experience) => [experience.id, experience]));
 
-    if (family === "Classic") {
-      return recommendedMode === "classic";
-    }
+  const classicItems = classicIds
+    .map((id) => byId.get(id))
+    .filter(Boolean);
 
-    return recommendedMode === "choose your way";
-  });
-}
+  const quickItems = cywIds
+    .map((id) => byId.get(id))
+    .filter(Boolean);
 
-function renderStoryExperiences() {
-  const selectedFamily = storyFamilySelect.value || "Classic";
-  const experiences = getFamilyExperiences(selectedFamily);
-  const previousType = storyTypeSelect.value;
-
-  storyTypeSelect.innerHTML = experiences
-    .map(
-      (experience) => `<option value="${escapeHtml(experience.id)}">${escapeHtml(experience.label)}</option>`
-    )
+  classicTypeSelect.innerHTML = classicItems
+    .map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.label)}</option>`)
     .join("");
 
-  if (experiences.some((experience) => experience.id === previousType)) {
-    storyTypeSelect.value = previousType;
-  }
+  cywTypeSelect.innerHTML =
+    '<option value="" selected>None</option>' +
+    quickItems
+      .map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.label)}</option>`)
+      .join("");
 
-  if (!storyTypeSelect.value && experiences[0]) {
-    storyTypeSelect.value = experiences[0].id;
+  if (!classicTypeSelect.value && classicItems[0]) {
+    classicTypeSelect.value = classicItems[0].id;
   }
 }
 
 function updateUiState() {
-  const selections = getSelections();
-  const storyExperience = getStoryExperience(selections.storyType);
+  const quickStoryId = cywTypeSelect.value;
+  const usingQuickStory = Boolean(quickStoryId);
 
-  storyModeHidden.value = storyExperience.recommendedMode || "Classic";
+  if (usingQuickStory) {
+    storyModeHidden.value = "Choose Your Way";
+    storyTypeHidden.value = quickStoryId;
+  } else {
+    storyModeHidden.value = "Classic";
+    storyTypeHidden.value = classicTypeSelect.value || "Adventure";
+  }
+
+  const storyExperience = getStoryExperience(storyTypeHidden.value);
+
+  classicThemeGroup.hidden = usingQuickStory;
+  classicWorldGroup.hidden = usingQuickStory;
+  classicLookGroup.hidden = usingQuickStory;
+
   storyTypeSummary.textContent = `${storyExperience.label}: ${storyExperience.description}`;
   modeSummary.textContent = `${storyModeHidden.value} mode for ${storyExperience.label}`;
 }
@@ -259,6 +309,7 @@ async function checkCheckoutReturn() {
 
 async function handleGenerate(event) {
   event.preventDefault();
+  updateUiState();
 
   generateButton.disabled = true;
   generateButton.textContent = "Generating...";
@@ -319,11 +370,11 @@ function getSelections() {
   return {
     storyType: formData.get("storyType") || "Adventure",
     storyMode: formData.get("storyMode") || "Classic",
-    storyTheme: formData.get("storyTheme"),
-    fantasyWorld: formData.get("fantasyWorld"),
+    storyTheme: formData.get("storyTheme") || "Friendship",
+    fantasyWorld: formData.get("fantasyWorld") || "Sky Kingdom",
     characterName: formData.get("characterName"),
-    hairColor: formData.get("hairColor"),
-    hairStyle: formData.get("hairStyle"),
+    hairColor: formData.get("hairColor") || "Brown",
+    hairStyle: formData.get("hairStyle") || "Curly",
     characterGender: formData.get("characterGender"),
     characterAge: formData.get("characterAge"),
     ageBand: formData.get("ageBand")
@@ -346,4 +397,3 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 }
-

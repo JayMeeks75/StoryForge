@@ -84,6 +84,45 @@ const storyExperiences = {
       "- End with a peaceful bedtime landing."
     ]
   },
+  LostAtWalmart: {
+    label: "Lost at Walmart",
+    family: "Choose Your Way",
+    mode: "Choose Your Way",
+    implementationStage: "live",
+    dashboardDescription: "A quick story about getting separated and making safe choices.",
+    titleStyle: "lost-at-walmart quick story",
+    quickStory: true,
+    promptInstructions: [
+      "- Keep this story quick and easy to follow.",
+      "- Include 2 to 3 short choices that help the child return safely to a trusted adult."
+    ]
+  },
+  ImASuperhero: {
+    label: "I'm a Super Hero",
+    family: "Choose Your Way",
+    mode: "Choose Your Way",
+    implementationStage: "live",
+    dashboardDescription: "A quick story where the child makes heroic, kind choices.",
+    titleStyle: "super-hero quick story",
+    quickStory: true,
+    promptInstructions: [
+      "- Keep this story quick and upbeat.",
+      "- Include 2 to 3 short choices focused on helping others and being brave."
+    ]
+  },
+  AliensTookMe: {
+    label: "Aliens Took Me",
+    family: "Choose Your Way",
+    mode: "Choose Your Way",
+    implementationStage: "live",
+    dashboardDescription: "A quick, playful alien adventure with friendly choices.",
+    titleStyle: "alien adventure quick story",
+    quickStory: true,
+    promptInstructions: [
+      "- Keep this story quick, funny, and not scary.",
+      "- Include 2 to 3 short choices and end safely back home."
+    ]
+  },
   AdventureChooseYourWay: {
     label: "Adventure Choose Your Way",
     family: "Interactive",
@@ -295,7 +334,7 @@ async function handleGenerate(payload, res) {
     storyTypeLabel: getStoryExperience(payload.storyType).label,
     storyMode: payload.storyMode,
     wordRange: `${ageProfile.minWords}-${ageProfile.maxWords}`,
-    characterSummary: `${payload.characterName}, ${payload.characterGender.toLowerCase()}, age ${payload.characterAge}, ${payload.hairColor.toLowerCase()} ${payload.hairStyle.toLowerCase()} hair`,
+    characterSummary: buildCharacterSummary(payload),
     model,
     datasetSummary: datasets.map((entry) => ({
       label: entry.label,
@@ -417,18 +456,22 @@ function handleClaimFreeTier(res) {
 }
 
 function validateSelections(payload) {
-  const requiredFields = [
-    "storyType",
-    "storyMode",
-    "storyTheme",
-    "fantasyWorld",
-    "characterName",
-    "hairColor",
-    "hairStyle",
-    "characterGender",
-    "characterAge",
-    "ageBand"
-  ];
+  const storyExperience = storyExperiences[payload?.storyType];
+  const isQuickStory = Boolean(storyExperience?.quickStory);
+  const requiredFields = isQuickStory
+    ? ["storyType", "storyMode", "characterName", "characterGender", "characterAge", "ageBand"]
+    : [
+        "storyType",
+        "storyMode",
+        "storyTheme",
+        "fantasyWorld",
+        "characterName",
+        "hairColor",
+        "hairStyle",
+        "characterGender",
+        "characterAge",
+        "ageBand"
+      ];
 
   for (const field of requiredFields) {
     if (!payload?.[field]) {
@@ -453,6 +496,7 @@ function validateSelections(payload) {
 
 function buildPrompt(payload, ageProfile, datasets) {
   const storyExperience = getStoryExperience(payload.storyType);
+  const isQuickStory = Boolean(storyExperience.quickStory);
   const datasetBlock = datasets
     .map((entry) => {
       const snippets = entry.snippets.length
@@ -468,19 +512,19 @@ function buildPrompt(payload, ageProfile, datasets) {
     `Audience age: ${payload.ageBand}`,
     `Story experience: ${storyExperience.label}`,
     `Requested story mode: ${payload.storyMode}`,
-    `Story theme: ${payload.storyTheme}`,
-    `Fantasy world: ${payload.fantasyWorld}`,
+    `Story theme: ${payload.storyTheme || "Friendship"}`,
+    `Fantasy world: ${payload.fantasyWorld || "Sky Kingdom"}`,
     `Main character name: ${payload.characterName}`,
     `Main character gender: ${payload.characterGender}`,
     `Main character age: ${payload.characterAge}`,
-    `Main character hair color: ${payload.hairColor}`,
-    `Main character hair style: ${payload.hairStyle}`,
-    `Target word range: ${ageProfile.minWords}-${ageProfile.maxWords}`,
+    `Main character hair color: ${payload.hairColor || "Brown"}`,
+    `Main character hair style: ${payload.hairStyle || "Curly"}`,
+    `Target word range: ${isQuickStory ? "250-450" : `${ageProfile.minWords}-${ageProfile.maxWords}`}`,
     "",
     "Requirements:",
     "- Write only the final story with a title on the first line.",
     "- Make the story fully child-safe, positive, and easy to understand.",
-    "- Keep the plot complete with a clear beginning, middle, and ending.",
+    `- Keep the plot complete with a clear beginning, middle, and ending.${isQuickStory ? " Keep it short and quick." : ""}`,
     "- Use the selected character details naturally throughout the story.",
     "- Match the requested story experience and mode, treating it as a separate feature with its own structure.",
     "- Reflect the dataset influences only through tone, pacing, vocabulary, and scene style.",
@@ -494,7 +538,22 @@ function buildPrompt(payload, ageProfile, datasets) {
 
 function buildTitle(payload) {
   const storyExperience = getStoryExperience(payload.storyType);
-  return `${payload.characterName}'s ${storyExperience.titleStyle} in ${payload.fantasyWorld}`;
+  const worldLabel = payload.fantasyWorld || "a magical world";
+  if (storyExperience.quickStory) {
+    return `${payload.characterName}'s ${storyExperience.titleStyle}`;
+  }
+  return `${payload.characterName}'s ${storyExperience.titleStyle} in ${worldLabel}`;
+}
+
+function buildCharacterSummary(payload) {
+  const storyExperience = getStoryExperience(payload.storyType);
+  if (storyExperience.quickStory) {
+    return `${payload.characterName}, ${String(payload.characterGender || "").toLowerCase()}, age ${payload.characterAge}`;
+  }
+
+  const hairColor = String(payload.hairColor || "Brown").toLowerCase();
+  const hairStyle = String(payload.hairStyle || "Curly").toLowerCase();
+  return `${payload.characterName}, ${String(payload.characterGender || "").toLowerCase()}, age ${payload.characterAge}, ${hairColor} ${hairStyle} hair`;
 }
 
 function finalizeGenerationAccounting(openAiResponse, payload) {

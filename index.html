@@ -27,25 +27,32 @@
             <legend>Story Experience</legend>
             <div class="experience-selects">
               <label class="field-card">
-                <span>Family</span>
-                <select id="story-family" name="storyFamily">
-                  <option value="Classic" selected>Classic</option>
-                  <option value="Choose Your Way">Choose Your Way</option>
+                <span>Classic</span>
+                <select id="classic-type-select" name="classicStoryType">
+                  <option value="Adventure" selected>Adventure</option>
+                  <option value="Bedtime">Bedtime</option>
+                  <option value="Mystery">Mystery</option>
                 </select>
               </label>
               <label class="field-card">
-                <span>Experience</span>
-                <select id="story-type-select" name="storyType"></select>
+                <span>Choose Your Way</span>
+                <select id="cyw-type-select" name="cywStoryType">
+                  <option value="" selected>None</option>
+                  <option value="LostAtWalmart">Lost at Walmart</option>
+                  <option value="ImASuperhero">I'm a Super Hero</option>
+                  <option value="AliensTookMe">Aliens Took Me</option>
+                </select>
               </label>
             </div>
             <p id="story-type-summary" class="group-summary">
-              Pick a family and experience.
+              Pick a classic story, or choose a quick "Choose Your Way" story.
             </p>
           </fieldset>
 
           <input type="hidden" id="story-mode-hidden" name="storyMode" value="Classic">
+          <input type="hidden" id="story-type-hidden" name="storyType" value="Adventure">
 
-          <fieldset class="option-group">
+          <fieldset id="classic-theme-group" class="option-group">
             <legend>Story Theme</legend>
             <div class="choice-grid">
               <label><input type="radio" name="storyTheme" value="Friendship" checked> Friendship</label>
@@ -54,7 +61,7 @@
             </div>
           </fieldset>
 
-          <fieldset class="option-group">
+          <fieldset id="classic-world-group" class="option-group">
             <legend>Fantasy World</legend>
             <div class="choice-grid">
               <label><input type="radio" name="fantasyWorld" value="Sky Kingdom" checked> Sky Kingdom</label>
@@ -63,7 +70,7 @@
             </div>
           </fieldset>
 
-          <fieldset class="option-group">
+          <fieldset id="classic-look-group" class="option-group">
             <legend>Character Creation</legend>
             <div class="input-grid">
               <label class="field-card">
@@ -91,8 +98,8 @@
               <label class="field-card">
                 <span>Gender</span>
                 <select name="characterGender">
-                  <option value="Male" selected>Male</option>
-                  <option value="Female">Female</option>
+                  <option value="Boy" selected>Boy</option>
+                  <option value="Girl">Girl</option>
                 </select>
               </label>
               <label class="field-card">
