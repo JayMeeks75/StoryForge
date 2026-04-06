@@ -374,7 +374,8 @@ async function handleSendVerificationCode(payload, res) {
   const expiresAt = Date.now() + 10 * 60 * 1000;
   state.pending[email] = { code, token, expiresAt };
   writeJsonFile(authVerificationFile, state);
-  const verifyUrl = `${appBaseUrl}/?verify_email=${encodeURIComponent(email)}&verify_token=${encodeURIComponent(token)}`;
+  const origin = getSafeOrigin(payload?.appBaseUrl) || appBaseUrl;
+  const verifyUrl = `${origin}/?verify_email=${encodeURIComponent(email)}&verify_token=${encodeURIComponent(token)}`;
 
   if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM_ADDRESS) {
     return sendJson(res, 200, {
@@ -1047,6 +1048,18 @@ function generateVerificationToken() {
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function getSafeOrigin(value) {
+  try {
+    const url = new URL(String(value || ""));
+    if (url.protocol === "https:" || url.protocol === "http:") {
+      return url.origin;
+    }
+    return "";
+  } catch {
+    return "";
+  }
 }
 
 function collectSnippets(files, limit) {

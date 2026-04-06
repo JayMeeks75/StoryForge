@@ -490,7 +490,7 @@ async function handleSignUp() {
     const response = await fetch("/api/auth/send-verification", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email, appBaseUrl: window.location.origin })
     });
     const data = await response.json();
     if (!response.ok) {
