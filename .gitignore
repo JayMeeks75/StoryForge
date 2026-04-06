@@ -5,3 +5,5 @@ tmp-downloads/
 *.log
 *.err.log
 last-generate-response.json
+
+.vercel

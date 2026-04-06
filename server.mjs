@@ -154,7 +154,7 @@ const storyExperiences = {
 ensureDatasetFolders();
 ensureDataFiles();
 
-const server = http.createServer(async (req, res) => {
+export async function handleRequest(req, res) {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
 
@@ -206,11 +206,19 @@ const server = http.createServer(async (req, res) => {
       details: error.message
     });
   }
-});
+}
 
-server.listen(port, () => {
-  console.log(`StoryForge Kids is running at http://localhost:${port}`);
-});
+export function startServer() {
+  const server = http.createServer(handleRequest);
+  server.listen(port, () => {
+    console.log(`StoryForge Kids is running at http://localhost:${port}`);
+  });
+  return server;
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
+  startServer();
+}
 
 async function handleGenerate(payload, res) {
   if (!process.env.OPENAI_API_KEY) {
