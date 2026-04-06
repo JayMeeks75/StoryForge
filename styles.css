@@ -137,9 +137,21 @@ h1 {
   gap: 0.65rem;
 }
 
+.auth-verify-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.65rem;
+  align-items: end;
+}
+
 .auth-actions .secondary-button,
 .auth-actions .tier-button {
   margin-top: 0;
+}
+
+#verify-button:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .option-group {
@@ -394,6 +406,7 @@ input[type="radio"] {
   .choice-grid,
   .experience-selects,
   .auth-actions,
+  .auth-verify-row,
   .input-grid,
   .meta-grid {
     grid-template-columns: 1fr;

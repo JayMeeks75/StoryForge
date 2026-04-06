@@ -18,6 +18,7 @@ const dataRoot = process.env.STORYFORGE_DATA_ROOT
   : path.join(__dirname, "data");
 const billingFile = path.join(dataRoot, "billing.json");
 const usageFile = path.join(dataRoot, "usage.json");
+const authVerificationFile = path.join(dataRoot, "auth-verifications.json");
 const stripeApiVersion = "2026-02-25.clover";
 const openAiInputCostPerMillion = Number(process.env.OPENAI_INPUT_COST_PER_MILLION || 0.25);
 const openAiOutputCostPerMillion = Number(process.env.OPENAI_OUTPUT_COST_PER_MILLION || 2);
@@ -225,6 +226,16 @@ export async function handleRequest(req, res) {
       return handleGenerate(body, res);
     }
 
+    if (req.method === "POST" && url.pathname === "/api/auth/send-verification") {
+      const body = await readJsonBody(req);
+      return handleSendVerificationCode(body, res);
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/auth/verify-code") {
+      const body = await readJsonBody(req);
+      return handleVerifyCode(body, res);
+    }
+
     if (req.method === "GET") {
       return serveStatic(url.pathname, res);
     }
@@ -343,6 +354,77 @@ async function handleGenerate(payload, res) {
     })),
     creditsRemaining: finalizeGenerationAccounting(data, payload)
   });
+}
+
+async function handleSendVerificationCode(payload, res) {
+  const email = String(payload?.email || "").trim().toLowerCase();
+  if (!isValidEmail(email)) {
+    return sendJson(res, 400, { error: "Enter a valid email address." });
+  }
+
+  if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM_ADDRESS) {
+    return sendJson(res, 400, {
+      error: "Email verification is not configured. Set RESEND_API_KEY and EMAIL_FROM_ADDRESS."
+    });
+  }
+
+  const state = readAuthVerificationState();
+  const code = generateVerificationCode();
+  const expiresAt = Date.now() + 10 * 60 * 1000;
+  state.pending[email] = { code, expiresAt };
+  writeJsonFile(authVerificationFile, state);
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: process.env.EMAIL_FROM_ADDRESS,
+      to: [email],
+      subject: "Your StoryForge verification code",
+      html: `<p>Your StoryForge code is <strong>${code}</strong>.</p><p>This code expires in 10 minutes.</p>`
+    })
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    return sendJson(res, response.status, {
+      error: data?.message || data?.error?.message || "Failed to send verification email."
+    });
+  }
+
+  return sendJson(res, 200, { ok: true, message: "Verification code sent." });
+}
+
+function handleVerifyCode(payload, res) {
+  const email = String(payload?.email || "").trim().toLowerCase();
+  const code = String(payload?.code || "").trim();
+
+  if (!isValidEmail(email) || !/^\d{6}$/.test(code)) {
+    return sendJson(res, 400, { error: "Enter a valid email and 6-digit code." });
+  }
+
+  const state = readAuthVerificationState();
+  const record = state.pending[email];
+  if (!record) {
+    return sendJson(res, 400, { error: "No verification request found for that email." });
+  }
+
+  if (Date.now() > Number(record.expiresAt || 0)) {
+    delete state.pending[email];
+    writeJsonFile(authVerificationFile, state);
+    return sendJson(res, 400, { error: "Verification code expired. Request a new one." });
+  }
+
+  if (String(record.code) !== code) {
+    return sendJson(res, 400, { error: "Incorrect verification code." });
+  }
+
+  delete state.pending[email];
+  writeJsonFile(authVerificationFile, state);
+  return sendJson(res, 200, { ok: true, verified: true });
 }
 
 async function handleCreateCheckoutSession(payload, res) {
@@ -746,6 +828,10 @@ function ensureDataFiles() {
   if (!fs.existsSync(usageFile)) {
     writeJsonFile(usageFile, defaultUsageState());
   }
+
+  if (!fs.existsSync(authVerificationFile)) {
+    writeJsonFile(authVerificationFile, defaultAuthVerificationState());
+  }
 }
 
 function loadDotEnv(filePath) {
@@ -818,6 +904,12 @@ function defaultUsageState() {
   };
 }
 
+function defaultAuthVerificationState() {
+  return {
+    pending: {}
+  };
+}
+
 function readBillingState() {
   const state = readJsonFile(billingFile, {});
   return {
@@ -833,6 +925,15 @@ function readUsageState() {
     ...defaultUsageState(),
     ...state,
     generations: Array.isArray(state.generations) ? state.generations : []
+  };
+}
+
+function readAuthVerificationState() {
+  const state = readJsonFile(authVerificationFile, {});
+  return {
+    ...defaultAuthVerificationState(),
+    ...state,
+    pending: state && typeof state.pending === "object" && state.pending !== null ? state.pending : {}
   };
 }
 
@@ -866,6 +967,14 @@ function getBillingTier(tierId) {
 
 function roundCurrency(value) {
   return Math.round(value * 10000) / 10000;
+}
+
+function generateVerificationCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function collectSnippets(files, limit) {

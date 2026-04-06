@@ -81,10 +81,14 @@ const classicLookGroup = document.querySelector("#classic-look-group");
 const authForm = document.querySelector("#auth-form");
 const authEmailInput = document.querySelector("#auth-email");
 const authPasswordInput = document.querySelector("#auth-password");
+const authCodeInput = document.querySelector("#auth-code");
 const signupButton = document.querySelector("#signup-button");
 const signinButton = document.querySelector("#signin-button");
 const signoutButton = document.querySelector("#signout-button");
+const verifyButton = document.querySelector("#verify-button");
 const authStatus = document.querySelector("#auth-status");
+let pendingVerificationEmail = "";
+let pendingVerificationPassword = "";
 
 form.addEventListener("submit", handleGenerate);
 form.addEventListener("change", updateUiState);
@@ -100,6 +104,7 @@ cywTypeSelect.addEventListener("change", () => {
 signupButton.addEventListener("click", handleSignUp);
 signinButton.addEventListener("click", handleSignIn);
 signoutButton.addEventListener("click", handleSignOut);
+verifyButton.addEventListener("click", handleVerifyEmail);
 
 initialize();
 
@@ -431,6 +436,7 @@ function syncAuthUi() {
   const isSignedIn = Boolean(currentEmail);
   authStatus.textContent = isSignedIn ? `Signed in as ${currentEmail}` : "Not signed in.";
   signoutButton.disabled = !isSignedIn;
+  verifyButton.disabled = !pendingVerificationEmail;
 }
 
 function getAuthInput() {
@@ -439,7 +445,7 @@ function getAuthInput() {
   return { email, password };
 }
 
-function handleSignUp() {
+async function handleSignUp() {
   if (!authForm.reportValidity()) {
     return;
   }
@@ -452,11 +458,66 @@ function handleSignUp() {
     return;
   }
 
-  users[email] = { password };
-  writeAuthUsers(users);
-  setSessionEmail(email);
-  authPasswordInput.value = "";
-  syncAuthUi();
+  try {
+    const response = await fetch("/api/auth/send-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to send verification code.");
+    }
+
+    pendingVerificationEmail = email;
+    pendingVerificationPassword = password;
+    authStatus.textContent = "Verification code sent. Check email and enter the 6-digit code.";
+    syncAuthUi();
+  } catch (error) {
+    authStatus.textContent = error.message || "Could not send verification code.";
+  }
+}
+
+async function handleVerifyEmail() {
+  const code = String(authCodeInput.value || "").trim();
+  if (!pendingVerificationEmail) {
+    authStatus.textContent = "Start with Sign Up to request a verification code.";
+    return;
+  }
+
+  if (!/^\d{6}$/.test(code)) {
+    authStatus.textContent = "Enter the 6-digit verification code.";
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/auth/verify-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: pendingVerificationEmail, code })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Verification failed.");
+    }
+
+    const users = readAuthUsers();
+    users[pendingVerificationEmail] = {
+      password: pendingVerificationPassword,
+      verified: true,
+      verifiedAt: new Date().toISOString()
+    };
+    writeAuthUsers(users);
+    setSessionEmail(pendingVerificationEmail);
+    pendingVerificationEmail = "";
+    pendingVerificationPassword = "";
+    authCodeInput.value = "";
+    authPasswordInput.value = "";
+    authStatus.textContent = "Email verified and account created.";
+    syncAuthUi();
+  } catch (error) {
+    authStatus.textContent = error.message || "Verification failed.";
+  }
 }
 
 function handleSignIn() {
@@ -469,6 +530,10 @@ function handleSignIn() {
 
   if (!users[email] || users[email].password !== password) {
     authStatus.textContent = "Wrong email or password.";
+    return;
+  }
+  if (!users[email].verified) {
+    authStatus.textContent = "Please verify your email first.";
     return;
   }
 

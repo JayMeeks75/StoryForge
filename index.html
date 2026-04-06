@@ -38,6 +38,13 @@
               <button type="button" id="signin-button" class="tier-button">Sign In</button>
               <button type="button" id="signout-button" class="secondary-button">Sign Out</button>
             </div>
+            <div class="auth-verify-row">
+              <label class="field-card">
+                <span>Verification Code</span>
+                <input type="text" id="auth-code" name="verificationCode" placeholder="6-digit code" inputmode="numeric" pattern="[0-9]{6}">
+              </label>
+              <button type="button" id="verify-button" class="tier-button">Verify Email</button>
+            </div>
             <p id="auth-status" class="group-summary">Not signed in.</p>
           </form>
         </section>
