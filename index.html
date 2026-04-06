@@ -22,6 +22,26 @@
           <h2>Story Builder</h2>
         </div>
 
+        <section class="auth-panel" aria-label="Account access">
+          <h3>Account</h3>
+          <form id="auth-form" class="auth-form">
+            <label class="field-card">
+              <span>Email</span>
+              <input type="email" id="auth-email" name="email" placeholder="parent@email.com" required>
+            </label>
+            <label class="field-card">
+              <span>Password</span>
+              <input type="password" id="auth-password" name="password" placeholder="Enter password" required>
+            </label>
+            <div class="auth-actions">
+              <button type="button" id="signup-button" class="tier-button">Sign Up</button>
+              <button type="button" id="signin-button" class="tier-button">Sign In</button>
+              <button type="button" id="signout-button" class="secondary-button">Sign Out</button>
+            </div>
+            <p id="auth-status" class="group-summary">Not signed in.</p>
+          </form>
+        </section>
+
         <form id="story-form" class="story-form">
           <fieldset class="option-group">
             <legend>Story Experience</legend>

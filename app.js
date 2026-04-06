@@ -58,6 +58,8 @@ const fallbackConfig = {
 };
 
 let appConfig = fallbackConfig;
+const authUsersStorageKey = "storyforge_auth_users_v1";
+const authSessionStorageKey = "storyforge_auth_session_v1";
 
 const form = document.querySelector("#story-form");
 const storyOutput = document.querySelector("#story-output");
@@ -76,6 +78,13 @@ const storyTypeHidden = document.querySelector("#story-type-hidden");
 const classicThemeGroup = document.querySelector("#classic-theme-group");
 const classicWorldGroup = document.querySelector("#classic-world-group");
 const classicLookGroup = document.querySelector("#classic-look-group");
+const authForm = document.querySelector("#auth-form");
+const authEmailInput = document.querySelector("#auth-email");
+const authPasswordInput = document.querySelector("#auth-password");
+const signupButton = document.querySelector("#signup-button");
+const signinButton = document.querySelector("#signin-button");
+const signoutButton = document.querySelector("#signout-button");
+const authStatus = document.querySelector("#auth-status");
 
 form.addEventListener("submit", handleGenerate);
 form.addEventListener("change", updateUiState);
@@ -88,10 +97,14 @@ classicTypeSelect.addEventListener("change", () => {
 cywTypeSelect.addEventListener("change", () => {
   updateUiState();
 });
+signupButton.addEventListener("click", handleSignUp);
+signinButton.addEventListener("click", handleSignIn);
+signoutButton.addEventListener("click", handleSignOut);
 
 initialize();
 
 async function initialize() {
+  syncAuthUi();
   await loadStatus();
   populateStoryTypeMenus();
   updateUiState();
@@ -387,6 +400,86 @@ function getStoryExperience(id) {
     appConfig.storyExperiences[0] ||
     fallbackConfig.storyExperiences[0]
   );
+}
+
+function readAuthUsers() {
+  try {
+    return JSON.parse(localStorage.getItem(authUsersStorageKey) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function writeAuthUsers(users) {
+  localStorage.setItem(authUsersStorageKey, JSON.stringify(users));
+}
+
+function getSessionEmail() {
+  return localStorage.getItem(authSessionStorageKey) || "";
+}
+
+function setSessionEmail(email) {
+  if (email) {
+    localStorage.setItem(authSessionStorageKey, email);
+  } else {
+    localStorage.removeItem(authSessionStorageKey);
+  }
+}
+
+function syncAuthUi() {
+  const currentEmail = getSessionEmail();
+  const isSignedIn = Boolean(currentEmail);
+  authStatus.textContent = isSignedIn ? `Signed in as ${currentEmail}` : "Not signed in.";
+  signoutButton.disabled = !isSignedIn;
+}
+
+function getAuthInput() {
+  const email = String(authEmailInput.value || "").trim().toLowerCase();
+  const password = String(authPasswordInput.value || "");
+  return { email, password };
+}
+
+function handleSignUp() {
+  if (!authForm.reportValidity()) {
+    return;
+  }
+
+  const { email, password } = getAuthInput();
+  const users = readAuthUsers();
+
+  if (users[email]) {
+    authStatus.textContent = "Account already exists. Sign in instead.";
+    return;
+  }
+
+  users[email] = { password };
+  writeAuthUsers(users);
+  setSessionEmail(email);
+  authPasswordInput.value = "";
+  syncAuthUi();
+}
+
+function handleSignIn() {
+  if (!authForm.reportValidity()) {
+    return;
+  }
+
+  const { email, password } = getAuthInput();
+  const users = readAuthUsers();
+
+  if (!users[email] || users[email].password !== password) {
+    authStatus.textContent = "Wrong email or password.";
+    return;
+  }
+
+  setSessionEmail(email);
+  authPasswordInput.value = "";
+  syncAuthUi();
+}
+
+function handleSignOut() {
+  setSessionEmail("");
+  syncAuthUi();
 }
 
 function escapeHtml(value) {
