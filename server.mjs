@@ -19,6 +19,7 @@ const dataRoot = process.env.STORYFORGE_DATA_ROOT
 const billingFile = path.join(dataRoot, "billing.json");
 const usageFile = path.join(dataRoot, "usage.json");
 const authVerificationFile = path.join(dataRoot, "auth-verifications.json");
+const runtimeMemoryStore = new Map();
 const stripeApiVersion = "2026-02-25.clover";
 const openAiInputCostPerMillion = Number(process.env.OPENAI_INPUT_COST_PER_MILLION || 0.25);
 const openAiOutputCostPerMillion = Number(process.env.OPENAI_OUTPUT_COST_PER_MILLION || 2);
@@ -804,33 +805,50 @@ function getDatasetContexts() {
 }
 
 function ensureDatasetFolders() {
-  if (!fs.existsSync(datasetRoot)) {
-    fs.mkdirSync(datasetRoot, { recursive: true });
-  }
-
-  for (const spec of datasetSpecs) {
-    const folderPath = path.join(datasetRoot, spec.key);
-    if (!fs.existsSync(folderPath)) {
-      fs.mkdirSync(folderPath, { recursive: true });
+  try {
+    if (!fs.existsSync(datasetRoot)) {
+      fs.mkdirSync(datasetRoot, { recursive: true });
     }
+
+    for (const spec of datasetSpecs) {
+      const folderPath = path.join(datasetRoot, spec.key);
+      if (!fs.existsSync(folderPath)) {
+        fs.mkdirSync(folderPath, { recursive: true });
+      }
+    }
+  } catch {
+    // Read-only serverless filesystem: ignore folder bootstrap.
   }
 }
 
 function ensureDataFiles() {
-  if (!fs.existsSync(dataRoot)) {
-    fs.mkdirSync(dataRoot, { recursive: true });
-  }
+  try {
+    if (!fs.existsSync(dataRoot)) {
+      fs.mkdirSync(dataRoot, { recursive: true });
+    }
 
-  if (!fs.existsSync(billingFile)) {
-    writeJsonFile(billingFile, defaultBillingState());
-  }
+    if (!fs.existsSync(billingFile)) {
+      writeJsonFile(billingFile, defaultBillingState());
+    }
 
-  if (!fs.existsSync(usageFile)) {
-    writeJsonFile(usageFile, defaultUsageState());
-  }
+    if (!fs.existsSync(usageFile)) {
+      writeJsonFile(usageFile, defaultUsageState());
+    }
 
-  if (!fs.existsSync(authVerificationFile)) {
-    writeJsonFile(authVerificationFile, defaultAuthVerificationState());
+    if (!fs.existsSync(authVerificationFile)) {
+      writeJsonFile(authVerificationFile, defaultAuthVerificationState());
+    }
+  } catch {
+    // Read-only serverless filesystem: seed in-memory defaults.
+    if (!runtimeMemoryStore.has(billingFile)) {
+      runtimeMemoryStore.set(billingFile, defaultBillingState());
+    }
+    if (!runtimeMemoryStore.has(usageFile)) {
+      runtimeMemoryStore.set(usageFile, defaultUsageState());
+    }
+    if (!runtimeMemoryStore.has(authVerificationFile)) {
+      runtimeMemoryStore.set(authVerificationFile, defaultAuthVerificationState());
+    }
   }
 }
 
@@ -938,6 +956,9 @@ function readAuthVerificationState() {
 }
 
 function readJsonFile(filePath, fallback) {
+  if (runtimeMemoryStore.has(filePath)) {
+    return runtimeMemoryStore.get(filePath);
+  }
   try {
     return JSON.parse(fs.readFileSync(filePath, "utf8"));
   } catch {
@@ -946,7 +967,12 @@ function readJsonFile(filePath, fallback) {
 }
 
 function writeJsonFile(filePath, payload) {
-  fs.writeFileSync(filePath, JSON.stringify(payload, null, 2));
+  runtimeMemoryStore.set(filePath, payload);
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(payload, null, 2));
+  } catch {
+    // Read-only serverless filesystem: rely on in-memory fallback.
+  }
 }
 
 function isAnyPaidTierEnabled() {
