@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: storyforge-kids
+    runtime: node
+    plan: starter
+    autoDeployTrigger: commit
+    buildCommand: npm install
+    startCommand: node server.mjs
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: NODE_ENV
+        value: production
+      - key: APP_BASE_URL
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-5-mini
+      - key: OPENAI_INPUT_COST_PER_MILLION
+        value: "0.25"
+      - key: OPENAI_OUTPUT_COST_PER_MILLION
+        value: "2"
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PRICE_ID_STARTER
+        sync: false
+      - key: STRIPE_PRICE_ID_SPARK
+        sync: false
+      - key: STRIPE_PRICE_ID_DREAM
+        sync: false
+      - key: STRIPE_PRICE_ID_CASTLE
+        sync: false
+      - key: STRIPE_PRICE_ID_GALAXY
+        sync: false
+      - key: STORYFORGE_DATA_ROOT
+        value: /opt/render/project/src/storage/data
+      - key: STORYFORGE_DATASET_ROOT
+        value: /opt/render/project/src/datasets
+    disk:
+      name: storyforge-data
+      mountPath: /opt/render/project/src/storage
+      sizeGB: 1

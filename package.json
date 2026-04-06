@@ -1,0 +1,11 @@
+{
+  "name": "storyforge-kids",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "StoryForge Kids with a hardened local Node backend, config-driven dashboard, billing, and OpenAI-backed story generation.",
+  "scripts": {
+    "start": "node server.mjs",
+    "check": "node --check server.mjs && node --check app.js"
+  }
+}

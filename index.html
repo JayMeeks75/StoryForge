@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StoryForge Kids</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <p class="eyebrow">StoryForge Kids</p>
+      <h1>Build original story adventures for ages 4 to 8.</h1>
+    </header>
+
+    <main class="layout">
+      <section class="panel builder-panel">
+        <div class="section-heading">
+          <h2>Story Builder</h2>
+          <span class="badge">Kids story builder</span>
+        </div>
+
+        <form id="story-form" class="story-form">
+          <fieldset class="option-group">
+            <legend>Story Experience</legend>
+            <div id="story-type-grid" class="story-type-grid"></div>
+            <p id="story-type-summary" class="group-summary">
+              Choose a story lane. Every "Choose Your Way" option is its own separate feature.
+            </p>
+          </fieldset>
+
+          <fieldset id="story-mode-group" class="option-group">
+            <legend>Story Mode</legend>
+            <div class="choice-grid">
+              <label><input type="radio" name="storyMode" value="Classic" checked> Classic Story</label>
+              <label><input type="radio" name="storyMode" value="Choose Your Way"> Choose Your Way</label>
+              <label><input type="radio" name="storyMode" value="Series Builder"> Series Builder</label>
+            </div>
+          </fieldset>
+
+          <fieldset class="option-group">
+            <legend>Story Theme</legend>
+            <div class="choice-grid">
+              <label><input type="radio" name="storyTheme" value="Friendship" checked> Friendship</label>
+              <label><input type="radio" name="storyTheme" value="Bravery"> Bravery</label>
+              <label><input type="radio" name="storyTheme" value="Kindness"> Kindness</label>
+            </div>
+          </fieldset>
+
+          <fieldset class="option-group">
+            <legend>Fantasy World</legend>
+            <div class="choice-grid">
+              <label><input type="radio" name="fantasyWorld" value="Sky Kingdom" checked> Sky Kingdom</label>
+              <label><input type="radio" name="fantasyWorld" value="Whispering Woods"> Whispering Woods</label>
+              <label><input type="radio" name="fantasyWorld" value="Moonlight Ocean"> Moonlight Ocean</label>
+            </div>
+          </fieldset>
+
+          <fieldset class="option-group">
+            <legend>Character Creation</legend>
+            <div class="input-grid">
+              <label class="field-card">
+                <span>Name</span>
+                <input type="text" name="characterName" value="Milo" maxlength="24" required>
+              </label>
+              <label class="field-card">
+                <span>Hair Color</span>
+                <select name="hairColor">
+                  <option value="Brown" selected>Brown</option>
+                  <option value="Blonde">Blonde</option>
+                  <option value="Black">Black</option>
+                  <option value="Red">Red</option>
+                </select>
+              </label>
+              <label class="field-card">
+                <span>Hair Style</span>
+                <select name="hairStyle">
+                  <option value="Curly" selected>Curly</option>
+                  <option value="Straight">Straight</option>
+                  <option value="Braided">Braided</option>
+                  <option value="Wavy">Wavy</option>
+                </select>
+              </label>
+              <label class="field-card">
+                <span>Gender</span>
+                <select name="characterGender">
+                  <option value="Male" selected>Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </label>
+              <label class="field-card">
+                <span>Character Age</span>
+                <select name="characterAge">
+                  <option value="4" selected>4</option>
+                  <option value="6">6</option>
+                  <option value="8">8</option>
+                </select>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="option-group">
+            <legend>Age</legend>
+            <div class="choice-grid">
+              <label><input type="radio" name="ageBand" value="4-5" checked> 4-5 years</label>
+              <label><input type="radio" name="ageBand" value="6-7"> 6-7 years</label>
+              <label><input type="radio" name="ageBand" value="8"> 8 years</label>
+            </div>
+          </fieldset>
+
+          <button type="submit" id="generate-button" class="generate-button">Generate Story</button>
+        </form>
+      </section>
+
+      <section class="panel output-panel">
+        <div class="section-heading">
+          <h2>Story Output</h2>
+          <span id="word-target" class="badge">Target: 500-700 words</span>
+        </div>
+
+        <div class="meta-grid">
+          <article class="meta-card">
+            <h3>Mode</h3>
+            <p id="mode-summary">Classic story mode</p>
+          </article>
+          <article class="meta-card">
+            <h3>Billing</h3>
+            <p id="credit-balance">Credits: 0</p>
+            <div id="tier-list" class="tier-list"></div>
+          </article>
+          <article class="meta-card wide-card">
+            <h3>Usage</h3>
+            <p id="billing-summary">Stories generated: 0</p>
+          </article>
+        </div>
+
+        <section class="dashboard-panel">
+          <div class="section-heading">
+            <h2>Feature Dash</h2>
+            <span class="badge">All story lanes</span>
+          </div>
+          <div id="feature-dashboard" class="feature-dashboard"></div>
+        </section>
+
+        <article id="story-output" class="story-output">
+          <h3>Environment Ready</h3>
+          <p>
+            Start StoryForge and generate an original story.
+          </p>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

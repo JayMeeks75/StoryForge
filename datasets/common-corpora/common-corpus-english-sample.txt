@@ -1,0 +1,557 @@
+Title: Ahmed Abdel Mougod Soliman
+Source: https://en.wikipedia.org/w/index.php?title=Ahmed Abdel Mougod Soliman&action=history
+
+Ahmed Abdel Mougod Soliman (born 19 December 1970) is an Egyptian long-distance runner. He competed in the men's marathon at the 2000 Summer Olympics.
+
+References
+
+1970 births
+Living people
+Athletes (track and field) at the 2000 Summer Olympics
+Egyptian male long-distance runners
+Egyptian male marathon runners
+Olympic athletes for Egypt
+Place of birth missing (living people)
+
+=====
+
+Title: Hierarchical Average Precision Training for Pertinent Image Retrieval. ECCV 2022, Oct 2022, Tel-Aviv, Israel. &#x27E8;hal-03712933v2&#x27E9;
+Source: None
+
+HAL is a multi-disciplinary open access archive for the deposit and dissemination of scientific research documents, whether they are published or not. The documents may come from teaching and research institutions in France or abroad, or from public or private research centers. L’archive ouverte pluridisciplinaire HAL, est destinée au dépôt et à la diffusion de documents scientifiques de niveau recherche, publiés ou non, émanant des établissements d’enseignement et de recherche français ou étrangers, des laboratoires publics ou privés. Hierarchical Average Precision Training for Pertinent Image Retrieval
+
+Elias Ramzi1,2, Nicolas Audebert1, Nicolas Thome1,3, Clément Rambour1 and Xavier Bitot2 1 CEDRIC, Conservatoire National des Arts et Métiers, Paris, France {elias.ramzi,nicolas.audebert,nicolas.thome,clement.rambour}@cnam.fr 2 Coexya, Paris, France xavier.bitot@coexya.eu 3 Sorbonne Université, CNRS, ISIR, F-75005 Paris, France
+
+Abstract. Image Retrieval is commonly evaluated with Average Precision (AP) or Recall@k. Yet, those metrics, are limited to binary labels and do not take into account errors’ severity. This paper introduces a new hierarchical AP training method for pertinent image retrieval (HAPPIER). HAPPIER is based on a new H-AP metric, which leverages a concept hierarchy to refine AP by integrating errors’ importance and better evaluate rankings. To train deep models with H-AP, we carefully study the problem’s structure and design a smooth lower bound surrogate combined with a clustering loss that ensures consistent ordering. Extensive experiments on 6 datasets show that HAPPIER significantly outperforms state-of-the-art methods for hierarchical retrieval, while being on par with the latest approaches when evaluating fine-grained ranking performances. Finally, we show that HAPPIER leads to better organization of the embedding space, and prevents most severe failure cases of non-hierarchical methods. Our code is publicly available at https://github.com/elias-ramzi/HAPPIER.
+
+Keywords: Hierarchical Image Retrieval, Hierarchical Average Precision, Ranking 1
+
+Introduction
+
+Image Retrieval (IR) consists in ranking images with respect to a query by decreasing order of visual similarity. IR methods are commonly evaluated using Recall@k (R@k) or Average Precision (AP). Because those metrics are non-differentiable , a rich literature exists on finding adequate surrogate loss functions to optimize them with deep learning, with tuple-wise losses [40,46,57,54,55], proxy based losses [59,53,12,49] and direct AP optimization methods [6,43,34,45,2,42]. These metrics are only defined for binary (⊕/) labels, which we denote as fine-grained labels: an image is negative as soon as it is not strictly similar to the query. Binary metrics are by design unable to take into account the severity of the mistakes in a ranking. On Fig. 1, some negative instances are “less negative” than others, e.g. given the “Brown Bear” query, “Polar bear” is more relevant than 2 E. Ramzi et al.
+
+HAPPIER rank 1
+
+rank 2 rank 3 rank 4 rank 5 rank
+
+6 Query image. Baseline Fig. 1: Proposed HAPPIER framework for pertinent image retrieval. Standard ranking metrics based on binary labels, e.g. Average Precision (AP), assign the same score to the bottom and top row rankings (0.9). We introduce the H-AP metric based on non-binary labels, that takes into account mistakes’ severity. H-AP assigns a smaller score to the bottom row (0.68) than the top one (0.94). HAPPIER maximizes H-AP during training and thus
+
+
+
+explicitly supports to learn rankings similar to the top one, in contrast to binary ranking
+
+loss
+
+es
+
+.
+
+“Butterfly”.
+
+
+
+However
+
+,
+
+AP
+
+is
+
+0.9
+
+for
+
+both the top and 
+
+bottom rankings. Consequently, training on binary metrics (e.g. AP or R@k) develops no incentive to produce ranking such as the top row, and often produces rankings similar to the bottom one. To address this problem, we introduce the HAPPIER method dedicated to Hierarchical Average Precision training for Pertinent ImagE Retrieval. HAPPIER provides a smooth training objective, amenable to gradient descent, which explicitly takes into account the severity of mistakes when evaluating rankings. Our first contribution is to define a new Hierarchical AP metric (H-AP) that leverages the hierarchical tree between concepts and enables a fine weighting between errors in rankings. As shown in Fig. 1, H-AP assigns a larger score (0.94) to the top ranking than to the bottom one (0.68). We show that H-AP provides a consistent generalization of AP for the non-binary setting. We also introduce our HAPPIERF variant, giving more weights to fine-grained levels of the hierarchy. Since H-AP, like AP, is a non-differentiable metric, our second contribution is to use HAPPIER to directly optimize H-AP by gradient descent. We carefully design a smooth surrogate loss for H-AP that has strong theoretical guarantees and is an upper bound of the true loss. We then define an additional clustering loss to support having a consistency between partial and global rankings. We validate HAPPIER on six IR datasets, including three standard datasets (Stanford Online Products [33] and iNaturalist-base/full [51]), and three recent hierarchical datasets (DyML [47]). We show that, when evaluating on hierarchical metrics (e.g. H-AP), HAPPIER outperforms state-of-the-art methods for finegrained ranking [57,59,49,42], the baselines and the latest hierarchical method of [47], and only slightly under-performs vs. state-of-the-art IR methods at the fine-grained level (e.g. AP, R@1). HAPPIERF performs on par on fine-grained metrics while still outperforming fine-grained methods on hierarchical metrics. HAPPIER 2 Related work 2.1 Image Retrieval and ranking 3
+
+The Image Retrieval community has designed several families of methods to optimize metrics such as AP and R@k. Methods that relies on tuplet-wise losses, like pair losses [17,41], triplet losses [57], or larger tuplets [46,27,54] learn comparison relations between instances. Methods using proxies have been introduced to lower the computational complexity of tuplet based training [31,59,53,12,49]: they learn jointly a deep model and weight matrix that represent proxies using a crossentropy based loss. Proxies are approximations of the original data points that should belong to their neighbourhood. Finally, there also has been large amounts of work dedicated to the direct optimization of the AP during training by introducing differentiable surrogates [6,43,34,45,2,42], so that models are optimized on the same metric they are evaluated on. However, nearly all of these methods only consider binary labels: two instances are either the same (positive) or different (negative), leading to poor performance when multiple levels of hierarchy are considered.
+
+2.2 Hierarchical predictions and metrics
+
+There has been a recent regain of interest in Hierarchical Classification [13,1,8] with the introductions of methods based either on a hierarchical softmax function or on multiple classifiers. It is considered that learning from hierarchical relations between labels leads to more robust models that make “better mistakes” [1]. Yet, hierarchical classification means that labels are known in advance and are identical in the train and test sets. This is called a closed set setting. However, Hierarchical Image Retrieval does not fall into this framework. Standard IR protocols consider the open set paradigm to better evaluate the generalization abilities of learned models: the retrieval task at test time pertains to labels that were not present in the train set, making classification poorly suited to IR. Meanwhile, the broader Information Retrieval community has been using datasets where documents can be more or less relevant depending on the query and the user making the request [20,24]. Instead of the mere positive/negative dichotomy, each instance has a continuous score quantifying its relevance to the query. To quantify the quality of their retrieval engine, Information Retrieval researchers have long used ranking based metrics, such as the NDCG [22,10], that penalize mistakes differently based on whether they occur at the top or the bottom of the ranking and whether wrong documents still have some marginal relevance or not. Average Precision is also used as a retrieval metric [23] and has even been given probabilistic interpretations based on how users interact with the system [14]. Several works have investigated how to optimize those metrics during the training of neural networks, e.g. using pairwise losses [4] and later using smooth surrogates of the NDCG in LambdaRank [5], SoftRank [48], ApproxNDCG [38] and LearningTo-Rank [3]. These works however focused on NDCG, the most popular metric for information retrieval, and are without any theoretical guarantees: the surrogates 4 E. Ramzi et al. are approximations of the NDCG but not lower bounds, i.e. their maximization does not imply improved performances during inference. An additional drawback of this literature is that NDCG does not relate easily to average precision [15], which is the most common metric in image retrieval. Fortunately, there have been some works done to extend AP in a graded setting where relevance between instances is not binary [44,14]. The graded Average Precision from [44] is the closest to our goal as it leverages SoftRank for direct optimization on non-binary relevance judgements, although there are significant shortcomings. There is no guarantee that the SoftRank surrogate actually minimizes the graded AP, it requires to annotate datasets with pairwise relevances which is unpractical for large scale settings and was only applied to small-scale corpora of a few thousands documents, compared to the hundred thousands of images in IR. Recently, the authors of [47] introduced three new hierarchical benchmarks datasets for image retrieval, in addition to a novel hierarchical loss CSL. CSL extends proxy-based triplet losses to the hierarchical setting and tries to structure the embedding space in a hierarchical manner. However, this method faces the same limitation as the usual triplet losses: minimizing CSL does not explicitly optimize a well-behaved hierarchical evaluation metric, e.g. H-AP. We show experimentally that our method HAPPIER significantly outperforms CSL [47] both on hierarchical metrics and AP-level evaluations.
+
+3 HAPPIER Model
+
+We detail HAPPIER our Hierarchical Average Precision training method for Pertinent ImagE Retrieval. We first introduce the Hierarchical Average Precision, H-AP in Sec. 3.1, that leverages a hierarchical tree (Fig. 2a) of labels. It is based on the hierarchical rank, H-rank, and evaluates rankings so that more relevant instances are ranked before less relevant ones (Fig. 2b). We then show how to directly optimize H-AP by stochastic gradient descent (SGD) using HAPPIER in Sec. 3.2. Our training objective combines a carefully designed smooth upper bound surrogate loss for LH-AP = 1 − H-AP and a clustering loss Lclust. that supports consistent rankings.
+
+Context
+
+Let us consider a retrieval set Ω = {xj }j∈J1;N K composed of N instances. For a query1 q ∈ Ω, we aim to order all xj ∈ Ω so that more relevant (i.e. similar) instances are ranked before relevant instances. In our hierarchical setting, the relevance of an instance xj is non-binary. We assume that we have access to a hierarchical tree defining semantic similarities between concepts as in Fig. 2a. For a query q, we leverage this knowledge to partition the set of retrieved instances into L+1 disjoint subsets Ω (l) l∈J0;LK. Ω (L) is the subset of the most similar instances to the query (i.e. fine-grained level): for L = 3 and a “Lada #2” query, Ω (3) are the images of the same “Lada #2” (green), see Fig. 2. The set Ω (l) for l < L contains instances with smaller 1 For the sake of readability, our notations are given for a single query. During training, HAPPIER optimizes our hierarchical retrieval objective by averaging several queries.
+
+HAPPIER 5
+
+Query Image: Lada #2 Vehicles Cars Lada Pickup Mini Bus Prius Prius #4 Lada #1 Lada #2 Lada #9 Fig. 2: HAPPIER leverages a hierarchical tree representing the semantic similarities between concepts in (a) to introduce a new hierarchical metric, H-AP in Eq. (3), see (b). H-AP exploits the hierarchy to weight rankings’ inversion: given the query image of a “Lada #2”, H-AP penalizes an inversion with a “Lada #9” less than with a “Prius #4”. To directly train models with H-AP, we carefully study the structure of the problem
+
+and 
+
+introduce the LsH-AP loss
+
+in
+
+Eq. (5)
+
+, which provides
+
+a
+
+smooth upper bound
+
+of LH-AP
+
+,
+
+see (c).
+
+We also
+
+train
+
+
+
+HAPPIER
+
+with the
+
+Lc
+
+lust. loss
+
+in Eq. (6)
+
+to enforce the partial 
+
+ordering
+
+in s
+
+toch
+
+astic
+
+optimization to mach the global ones. relevance with respect to the query: Ω (2) in Fig. 2 is the set of “Lada” that are not “Lada #2” (blue) and Ω (1) is the set of “Cars” that are not “Lada” (orange). We also define Ω − := Ω (0) as the set of negativeSinstances, i.e. the set of vehicles L that are not “Cars” (in red) in Fig. 2 and Ω + = l=1 Ω (l). Each instance k of Ω (l) is thus associated a value through the relevance function denoted as rel(k) [20]. To rank the instances xj ∈ Ω with respect to the query q, we compute cosine similarities in an embedding space. More precisely, we extract embedding vectors using a deep neural network f parameterized by θ, vj = fθ (xj ), and compute the cosine similarity between the query and every image sj = fθ (q)T vj. Images are then ranked by decreasing cosine similarity score. We learn the parameters θ of the network with HAPPIER, our framework to directly minimize LH-AP (θ) = 1−H-AP(θ). This enforces a ranking where the instances with the highest cosine similarity scores belong to Ω (L), then Ω (L−1) etc. and the items with the lowest cosine similarity belong to Ω −.
+
+3.1 Hierarchical Average Precision
+
+Average Precision (AP) is the most common metric in Image Retrieval. AP evaluates a ranking in a binary setting: for a given query, each instance is either Query
+
+Image: Lada #2
+
+Fig. 3: Given a “Lada #2” query, the top inversion is less severe than the bottom one. Indeed on the top row instance 1 is semantically closer to the query – as it is a “Lada”– than instance 3 on the bottom row. Indeed instance 3’s closest common ancestor with the query, “Cars”, is farther in the hierarchical tree (see Fig. 2a). Because of that H-rank(2) is greater on the top row (5/3) than on the bottom row (4/3), leading to a greater H-AP in Fig. 2b for the top row. positive or negative. It is computed PN as the average of precision at each rank n over the positive set AP = |Ω1+ | n=1 Prec(n). Previous works have written the AP using the ranking operator [2] as in Eq. (1). The rank for an instance k is written as a sum of Heaviside (step) function H [38]: this counts the number of instances j ranked before k, i.e. that have a higher cosine similarity (sj > sk ). rank+ is the rank among the positive instances, i.e. restricted to Ω +. \label {eq:ap_definition} \text {AP} = \frac {1}{|\Omega ^+|} \sum _{k\in \Omega ^+} \frac {\rank ^+(k)}{\rank (k)}, \; \text {with } \begin {cases} \rank (k) = 1 + \sum _{j\in \Omega } H(s_j - s_k) \\ \rank ^+(k) = 1 + \sum _{j\in \Omega ^+} H(s_j - s_k) \end {cases} (1) 
+
+Extend
+
+ing AP to hierarchical image retrieval
+
+We propose an extension of AP that leverages non-binary labels. To do so, we extend the concept of rank+ to the hierarchical case with the concept of hierarchical rank, H-rank: \hrank (k) = \rel (k) + \sum _{j\in \Omega ^+} \min (\rel (k), \rel (j))\cdot H(s_j-s_k) ~. \label {eq:hierarchical_rank} (2) Intuitively, min(rel(k), rel(j)) corresponds to seeking the closest ancestor shared by instance k and j with the query in the hierarchical tree. As illustrated in Fig. 3, H-rank induces a smoother penalization for instances that do not share the same fine-grained label as the query but still share some coarser semantics, which is not the case for rank+. From H-rank in Eq. (2) we define the Hierarchical Average Precision, H-AP: \label {eq:def_hap} \hap = \frac {1}{\sum _{k\in \Omega ^+}\rel (k)} \sum _{k\in \Omega ^+} \frac {\hrank (k)}{\rank (k)} (3) Eq. (3) extends the AP to non-binary labels. We replace rank+ Pby our hierarchical rank H-rank and the normalization term |Ω + | replaced by k∈Ω + rel(k), which both represent the “sum of positives”, see more details in supplementary A.2. HAPPIER 7
+
+H-AP extends the desirable properties of the AP. It evaluates the quality of a ranking by: i) penalizing inversions of instances that are not ranked in decreasing order of relevances with respect to the query, ii) giving stronger emphasis to inversions that occur at the top of the ranking. Finally, we can observe that, by this definition, H-AP is equal to the AP in the binary setting (L = 1). This makes H-AP a consistent generalization of AP (details in supplementary A.2).
+
+Relevance function design
+
+The relevance rel(k) defines how “similar” an instance k ∈ Ω (l) is to the query q. While rel(k) might be given as input in Information Retrieval datasets [37,9], we need to define it based on the hierarchical tree in our case. We want to enforce the constraint that the relevance decreases ′ when going up the tree, i.e. rel(k) > rel(k ′ ) for k ∈ Ω (l), k ′ ∈ Ω (l ) and l > l′. To do so, we assign a total weight of (l/L)α to each semantic level l, where α ∈ R+ controls the decrease rate of similarity in the tree. For example for L = 3 and α = 1, the total weights for each level are 1, 23, 13 and 0. The instance relevance rel(k) is normalized by the cardinal of Ω (l) : \label
+
+{
+
+eq
+
+:hier
+
+archy
+
+_relevance} \rel (k) = \frac {(l/L)^\alpha }{|\Omega ^{(l)}|} \; \text {if } k \in \Omega ^{(l)} (4)
+
+Other definitions fulfilling the decreasing similarity behaviour in the tree are possible. An interestingP option forP the relevance enables to recover a weighted L sum of AP, denoted as wAP := l=1 wl ·AP(l) ( supplementary A.2), i.e. the weighted sum of AP is a particular case of H-AP. We set α = 1 in Eq. (4) for the H-AP metric and in our main experiments. Setting α to larger values supports better performances on fine-grained levels as their relevances will relatively increase. This variant is denoted HAPPIERF and discussed in Sec. 4. 3.2
+
+Direct optimization of H-AP H-AP
+
+in
+
+Eq. (3)
+
+involv
+
+es the computation of H-rank
+
+and
+
+rank
+
+, which are nondifferentiable due to the summing of
+
+Heaviside
+
+step function
+
+s
+
+. We thus introduce a smooth approximation of H-AP to obtain a surrogate loss amenable to gradient descent, which fulfils theoretical guarantees for proper optimization
+
+. Re-writing H-AP
+
+In order to design our surrogate loss for LH-AP = 1−H-AP, we decompose H-rank and rank into two quantities. Denoting H-rank> (k) (resp. H-rank≤ (k)) as the restriction of H-rank to instances of strictly higher relevances (resp. lower or equal), we can see that H-rank(k) = H-rank> (k) + H-rank≤ (k). The rank can be decomposed in a similar fashion: rank(k) = rank≥ (k)+rank< (k) where < (resp. ≥) denotes the restriction to instances of strictly lower relevances (resp. higher or equal). The LH-AP can be rewritten as follow: \label {
+
+eq:re
+
+write
+
+_hap} \lhap = 1 - \frac {1}{\sum _{k\in \Omega ^+}\rel (k)} \sum _{k\in \Omega ^+} \frac {\hrank ^>(k) + \hrank ^\leq (k)}{\rank ^\geq (k) + \rank ^<(k)}~. (5) 8 E. Ramzi et al. We choose to optimize over H-rank> and rank< in Eq. (5). We maximize H-rank> to enforce that the k th instance must decrease in cosine similarity score if it is ranked before another instance of higher relevance (∇H-rank> in Fig. 2 enforces the blue instance to be ranked after the green one as it is less relevant to the query). We minimize rank< to encourage the k th instance to increase in cosine similarity score if it is ranked after one or more instances of lower relevance (∇rank< in Fig. 2 enforces that the last green instance moves before less relevant instances). Optimizing both those terms leads to a decrease in LH-AP. On the other hand, we purposely do not optimize the two remaining H-rank≤ (k) and rank≥ (k) terms, since this could harm training performances as explained in supplementary A.3.
+
+Upper bound of LH-AP
+
+Based on the previous analysis, we now design our surrogate loss LsH-AP by introducing a smooth approximation of rank< and H-rank> (k). An important sought property of LsH-AP is that it is an upper bound of LH-AP. To this end, we approximate H-rank> (k) with a piece-wise linear function that is a lower bound of the Heaviside function. rank< is approximated with a smooth upper bound of the Heaviside that combines a piece-wise sigmoid function and an affine function, which has been shown to make the training more robust thanks to the induced implicit margins between positives and negatives [45,2,42]. More details are given in supplementary A.3 on those surrogates. Clustering constraint in HAPPIER
+
+Positives only need to have a greater cosine similarity with the query than negatives in order to be correctly ranked. Yet, we cannot optimize the ranking on the entire datasets – and thus the true LH-AP – because of the batch-wise estimation performed in stochastic gradient descent. To mitigate this issue, we take inspiration from clustering methods [59,49] to define the following objective in order to group closely the embeddings of instances that share the same fine-grained label: \label {eq:cluster_loss} \lclust (\theta ) = - \log \left ( \frac {\exp (\frac {v_y^T p_y}{\sigma })}{\sum _{{p_z}\in \mathcal {Z}} \exp (\frac {v_y^T p_z}{\sigma })} \right ), (6) where py is the normalized proxy corresponding to the fine-grained class of the embedding vy, Z is the set of proxies, and σ is a temperature scaling parameter. In Fig. 2, ∇Lclust. further clusters “Lada #2” instances. Lclust. induces a reference shared across batches and thus enforces that the partial ordering in-between batches is consistent with the global ordering over the entire retrieval set. Our resulting final objective is a linear combination of both our losses, with a weight factor λ ∈ [0,1] that balances the two terms: \mathcal {L}_{\text {HAPPIER}}(\theta ) = (1-\lambda )\cdot \lhaps (\theta ) + \lambda \cdot \lclust (\theta ) ~. HAPPIER 4 Experiments 4.1 Experimental setup 9 Datasets
+
+We use the standard benchmark Stanford Online Products [33] (SOP) with two levels of hierarchy (L = 2), and iNaturalist-2018 [51] with the standard splits from [2] in two settings: i) iNat-base with two levels of hierarchy (L = 2) ii) iNat-full with the full biological taxonomy composed of 7 levels (L = 7). We also evaluate on the recent dynamic metric learning (DyML) datasets (DyML-V, DyML-A, DyML-P) introduced in [47] for the task of hierarchical image retrieval, each with 3 semantic levels (L = 3).
+
+Implementation details
+
+Our base model is a ResNet-50 pretrained on ImageNet for SOP and iNat-base/full, and a ResNet-34 randomly initialized on DyML-V&A and pretrained on ImageNet on DyML-P, following [47]. Unless specified otherwise, all reported results are obtained with α = 1 in Eq. (4) and λ = 0.1 for LHAPPIER. We study the impact of these parameters in Sec. 4.3. Metrics For SOP and iNat, we evaluate the models based on three hierarchical metrics: H-AP – which we introduced in Eq. (3) – the Average Set Intersection (ASI) and the Normalized Discounted Cumulative Gain (NDCG), defined in supplementary B.3. We also report the AP for each semantic level. For DyML, we follow the evaluation protocols of [47] and compute AP, ASI and R@1 on each semantic scale before averaging them. We cannot compute H-AP or NDCG on those datasets as the hierarchical tree is not available on the test set. Baselines
+
+We compare HAPPIER to several recent image retrieval methods optimized at the fine-grained level, which represent strong baselines for IR when training with binary labels: Triplet SH (TLSH ) [57], NormSoftMax (NSM) [59], ProxyNCA++ (NCA++) [49] and ROADMAP [42]. We also benchmark against hierarchical methods obtained by summing these fine-grained losses at different levels (denoted by Σ), and with respect to the recent hierarchical CSL loss [47]. Details on the experimental setup are given in supplementary B.
+
+4.2 Main Results Hierachical results
+
+We first evaluate HAPPIER on global hierarchical metrics. On Tab. 1, we notice that HAPPIER significantly outperforms methods trained on the fine-grained level only, with a gain on H-AP over the best performing methods of +16.1pt on SOP, +13pt on iNat-base and 12.7pt on iNat-full. HAPPIER also exhibits significant gains compared to hierarchical methods. On H-AP, HAPPIER has important gains on all datasets (e.g. +6.3pt on SOP, +4.2pt on iNat-base over the best competitor), but also on ASI and NDCG. This shows the strong generalization of the method on standard metrics. Compared to the recent CSL loss [47], we observe a consistent gain over all metrics and datasets, e.g. +6pt on H-AP, +8pt on ASI and +2.6pts on NDCG on SOP. This shows the benefits of optimizing a well-behaved hierarchical metric compared to an ad-hoc proxy method.
+
+10
+
+E. Ramzi et al.
+
+Table 1: Comparison of HAPPIER on SOP and iNat-base/full when using hierarchical metrics. Best results in bold, second best underlined. SOP Hier. Fine Method iNat-base iNat-full H-AP ASI NDCG H-AP ASI NDCG H-AP ASI NDCG Triplet SH [57] NSM [59] NCA++ [49] Smooth-AP [2] ROADMAP [42] 42.2 42.8 43.0 42.9 43.3 22.4 21.1 21.5 20.6 19.1 78.8 78.3 78.4 78.2 77.9 39.5 38.0 39.5 41.3 40.3 63.7 51.6 57.0 64.2 61.0 91.5 88.9 90.1 91.9 91.2 36.1 33.3 35.3 37.2 34.7 59.2 51.7 55.7 60.1 59.6 89.8 88.2 89.0 90.1 89.5 ΣTLSH [57] ΣNSM [59] ΣNCA++ [49] CSL [47] 53.1 50.4 49.5 52.8 53.3 49.7 52.8 57.9 89.2 87.0 87.8 88.1 44.0 47.9 48.9 50.1 87.4 75.8 78.7 89.3 96.4 94.4 95.0 96.7 39.9 46.9 44.7 45.1 85.5 74.2 74.3 84.9 92.0 93.8 92.6 93.0 HAPPIER 59.4 65.9 91.5 54.3 89.3 96.9 47.9 87.2 93.8
+
+On Tab. 2, we evaluate HAPPIER on the recent DyML benchmarks. HAPPIER again shows significant gains in mAP and ASI compared to methods only trained on fine-grained labels, e.g. +9pt in mAP and +10pt in ASI on DyML-V. HAPPIER also outperforms other hierarchical baselines: +4.8pt mAP on DyMLV, +0.9 on DyML-A and +1.8 on DyML-P. In R@1, HAPPIER performs on par with other methods on DyML-V and outperforms other hierarchical baselines by a large margin on DyML-P: 63.7 vs. 60.8 for ΣNSM. Interestingly, HAPPIER also consistently outperforms CSL [47] on its own datasets2.
+
+Table 2: Performance comparison on Dynamic Metric Learning benchmarks [47]. Hier. Fine Method 2 DyML-Vehicle DyML-Animal DyML-Product mAP ASI R@1 mAP ASI R@1 mAP ASI R@1 TLSH [57] NSM [59] Smooth-AP [2] ROADMAP [42] 26.1 27.7 27.1 27.1 38.6 40.3 39.5 39.6 84.0 88.7 83.8 84.5 37.5 38.8 37.7 34.4 46.3 48.4 45.4 42.6 66.3 69.6 63.6 62.8 36.32 35.6 36.1 34.6 46.1 46.0 45.5 44.6 59.6 57.4 55.0 62.5 ΣTLSH [57] ΣNSM
+
+[
+
+59] CSL [47] 25.5 32.0 30.0 38.1 45.7 43.6 81.0 89.4 87.1 38.9 42.6 40.8 47.2 50.6 46.3 65.9 70.0 60.9 36.9 36.8 31.1 46.3 46.9 40.7 58.5 60.8 52.7 HAPPIER 37.0 49.8 89.1 43.8 50.8 68.9 38.0 47.9 63.7
+
+CSL’s score on Tab. 2 are above those reported in [47]; personal discussions with the authors [47] validate that our results are valid for CSL, see supplementary B.5. HAPPIER 11 Detailed evaluation Tabs. 3 and 4 shows the different methods’ performances on all semantic hierarchy levels. We evaluate HAPPIER and also HAPPIERF (α > 1 for Eq. (4) in Sec. 3.1), with α = 5 on SOP and α = 3 on iNat-base/full. HAPPIER optimizes the overall hierarchical performances, while HAPPIERF is meant to be optimal at the fine-grained level while still optimizing coarser levels.
+
+Table 3:
+
+Comparison of HAPPIER vs. methods trained only on fine-grained labels on SOP and iNat-base. Metrics are reported for both semantic levels. SOP Hier. Fine Fine iNat-base Method R@1 AP Coarse AP R@1 Fine AP Coarse AP TLSH [57] NSM [59] NCA++ [49] Smooth-AP [2] ROADMAP [42] 79.8 81.3 81.4 81.3 82.2 59.6 61.3 61.7 61.7 62.5 14.5 13.4 13.6 13.4 12.9 66.3 70.2 67.3 67.3 69.3 33.3 37.6 37.0 35.2 35.1 51.5 38.8 44.5 53.1 50.4 CSL [47] 79.4 58.0 45.0 62.9 30.2 88.5 HAPPIER HAPPIERF 81.0 81.8 60.4 62.2 58.4 36.0 70.7 71.0 36.7 37.8 88.6 78.8
+
+On Tab. 3, we observe that HAPPIER gives the best performances at the coarse level, with a significant boost compared to fine-grained methods, e.g. +43.9pt AP compared to the best non-hierarchical TLSH [57] on SOP. HAPPIER even outperforms the best fine-grained methods in R@1 on iNat-base, but is slightly below on SOP. HAPPIERF performs on par with the best methods at the finest level on SOP, while further improving performances on iNat-base, and still significantly outperforms fine-grained methods at the coarse level. The satisfactory behaviour and the two optimal regimes of HAPPIER and HAPPIERF are confirmed and even more pronounced on iNat-full (Tab. 4): HAPPIER gives the best results on coarser levels (from “Order”), while being very close to the best results on finer ones. HAPPIERF gives the best results at the finest levels, even outperforming very competitive fine-grained baselines. Again, note that HAPPIER outperforms CSL [47] on all semantic levels and datasets on Tabs. 3 and 4, e.g. +5pt on the fine-grained AP (“Species”) and +3pt on the coarsest AP (“Kingdom”) on Tab. 4. 4.3 HAPPIER analysis Ablation study
+
+In Tab. 5, we study the impact of our different choices regarding the direct optimization of H-AP. The baseline method uses a sigmoid to optimize H-AP as in [38,2]. Switching to our surrogate loss LsH-AP Sec. 3.2 yields a +0.8pt increase in H-AP. Finally, the combination with Lclust. in HAPPIER results in an additional 1.3pt improvement in H-AP.
+
+12 E. Ramzi et al
+
+. Table 4: Comparison of HAPPIER vs. methods trained only on fine-grained labels on iNat-Full. Metrics are reported for all 7 semantic levels. Genus Family Order Class R@1 Species AP AP AP AP AP AP AP TLSH [57] NSM [59] NCA++ [49] Smooth-AP [2] ROADMAP [42] 66.3 70.2 67.3 67.3 69.3 33.3 37.6 37.0 35.2 35.1 34.2 38.0 37.9 36.3 35.4 32.3 31.4 33.0 33.5 29.3 35.4 28.6 32.3 35.0 29.6 48.5 36.6 41.9 49.3 46.4 54.6 43.9 48.4 55.8 54.7 68.4 63.0 66.1 69.9 69.5 CSL [47] 59.9 30.4 32.4 36.2 50.7 81.0 87.4 91.3 HAPPIER HAPPIERF 70.2 70.8 36.0 37.6 37.0 38.2 38.0 38.8 51.9 50.9 81.3 76.1 89.1 82.2 94.4 83.1 Hier. Fine Method Phylum Kingdom Table 5: Impact of optimization choices Table 6: Comparison of H-AP (Eq. (4)) for H-AP (cf. Sec. 3.2) on iNat-base. and ΣwAP from supplementary A.2. LsH-AP Lclust. H-AP ✗ ✓ ✓ ✗ ✗ ✓ 52.3 53.1 54.3 test→ train↓ H-AP P wAP NDCG H-AP P wAP 53.1 52.0 39.8 40.5 97.0 96.4 Impact of
+
+the relevan
+
+ce function
+
+Tab. 6 compares P models that are trained with the relevance function of Eq. (4), i.e. H-AP, andP wAP (relevance given in supplementary A.2). We report results for H-AP, wAP and NDCG. Both P H-AP, wAP perform better when trained withP their own metric: +1.1pt H-AP for the model trained to optimize it and +0.7pt wAP for the model trained to optimize it. Both models show similar performances in NDCG (96.4 vs. 97.0). 54 37.6 52
+
+H-AP AP
+
+fine 53 37.4 37.2 51 50 37.0 49
+
+APfine
+
+36.8
+
+1.0 1.5 2.0 3.0 4.0 5.0 H-AP 48 0.0 0.1 0.2 0.3 0.4 0.5 0.7 α λ (a) APfine vs α in Eq. (4). (b) H-AP vs. λ for LHAPPIER. Fig. 4: Impact on Inat-base of α in Eq. (4) for setting the relevance of H-AP (a) and of the λ hyper-parameter on HAPPIER results (b).
+
+HAPPIER 13 Hyper-parameters
+
+Fig. 4a studies the impact of α for setting the relevance in Eq. (4): increasing α improves the performances of the AP at the fine-grained level on iNat-base, as expected. We also show in Fig. 4b the impact of λ weighting LsH-AP and Lclust. in HAPPIER performances: we observe a stable increase in H-AP within 0 < λ < 0.5 compared to optimizing only LsH-AP, while a drop in performance is observed for λ > 0.5. This shows the complementarity of LsH-AP and Lclust., and how, when combined, HAPPIER reaches its best performance.
+
+4.4 Qualitative study
+
+We provide here qualitative assessments of HAPPIER, including embedding space analysis and visualiz ation of HAPPIER’s retrievals. t-SNE: organization of the embedding space
+
+In Fig. 5, we plot using tSNE [50,7] how HAPPIER learns an embedding space on SOP (L = 2) that is well-organized. We plot the mean vector of each fine-grained class and we assign the color based on the coarse level. We show on Fig. 5a the t-SNE visualisation obtained using a baseline method trained on the fine-grained labels, and in Fig. 5b we plot the t-SNE of the embedding space of a model trained with HAPPIER. We cannot observe any clear clusters for the coarse level on Fig. 5a, whereas we can appreciate the the quality of the hierarchical clusters formed on Fig. 5b. Controlled errors Finally, we showcase in Fig. 6 errors of HAPPIER vs. a fine-grained baseline. On Fig. 6a, we illustrate how a model trained with HAPPIER makes mistakes that are less severe than a baseline model trained only on the fine-grained level. On Fig. 6b, we show an example where both models fail to retrieve the correct fine-grained instances, however the model trained with HAPPIER retrieves images of bikes that are visually more similar to the query. (a) t-SNE visualization of a model (b) t-SNE visualization of a model trained only on the fine-grained labels. trained with HAPPIER.
+
+Fig. 5: t-SNE visualisation of the embedding space of two models trained on SOP. Each point is the average embedding of each fine-grained label (object instance) and the colors represent coarse labels (object category, e.g. bike, coffee maker). rank 2 rank 3 rank 4 rank 5 rank 6 HAPPIER
+
+rank 1
+
+Baseline Query image
+
+(a) HAPPIER can help make less severe mistakes. The inversion on the bottom row are with negative instances (in red), where as with HAPPIER (top row) inversions are with instances sharing the same coarse label “bike” (in orange).
+
+rank 2 rank 3 rank 4 rank 5 rank 6 HAPPIER rank 1 Baseline Query image
+
+(b) In this example, the models fail to retrieve the correct fine grained images. However HAPPIER still retrieves images of very similar bikes (in orange) whereas the baseline retrieves images that are dissimilar semantically to the query (in red).
+
+Fig. 6: Qualitative examples of failure cases from a standard fine-grained model corrected by training with HAPPIER.
+
+5 Conclusion
+
+In this work, we introduce HAPPIER, a new training method that leverages hierarchical relations between concepts to learn robust rankings. HAPPIER is based on a new metric H-AP that evaluates hierarchical rankings and uses a combination of a smooth upper bound surrogate with theoretical guarantees and a clustering loss to directly optimize it. Extensive experiments show that HAPPIER performs on par to state-of-the-art image retrieval methods on fine-grained metrics and exhibits large improvements vs. recent hierarchical methods on hierarchical metrics. Learning more robust rankings reduces the severity of ranking errors, and is qualitatively related to a better organization of the embedding space with HAPPIER. Future works include the adaptation of HAPPIER to the unsupervised setting, e.g. for providing a relevant self-training criterion.
+
+Acknowledgement HAPPIER 15
+
+References 1. Bertinetto, L., Mueller, R., Tertikas, K., Samangooei, S., Lord, N.A.: Making better mistakes: Leveraging class hierarchies with deep networks. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 12506–12515 (2020) 3 2. Brown, A., Xie, W., Kalogeiton, V., Zisserman, A.: Smooth-ap: Smoothing the path towards large-scale image retrieval. In: European Conference on Computer Vision. pp. 677–694. Springer (2020) 1, 3, 6, 8, 9, 10, 11, 12, 28, 29 3. Bruch, S., Zoghi, M., Bendersky, M., Najork, M.: Revisiting approximate metric optimization in the age of deep neural networks. In: Proceedings of the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval. pp. 1241–1244 (2019) 3 4. Burges, C., Shaked, T., Renshaw, E., Lazier, A., Deeds, M., Hamilton, N., Hullender, G.: Learning to rank using gradient descent. In: Proceedings of the 22nd International Conference on Machine Learning. p. 89–96. ICML ’05, Association for Computing Machinery, New York, NY, USA (2005). https://doi.org/10.1145/1102351.1102363, https://doi.org/10.1145/1102351.1102363 3 5. Burges, C., Ragno, R., Le, Q.: Learning to rank with nonsmooth cost functions. In: Schölkopf, B., Platt, J., Hoffman, T. (eds.) Advances in Neural Information Processing Systems. vol. 19. MIT Press (2006), https://proceedings.neurips. cc/paper/2006/file/af44c4c56f385c43f2529f9b1b018f6a-Paper.pdf 3 6. Cakir, F., He, K., Xia, X., Kulis, B., Sclaroff, S.: Deep
+
+learning to rank. 7. Chan, D.M., Rao, R., Huang, F., Canny, J.F.: Gpu accelerated t-distributed stochastic neighbor embedding. Journal of Parallel and Distributed Computing 131, 1–13 (2019) 13, 31 8. Chang, D., Pang, K., Zheng, Y., Ma, Z., Song, Y.Z., Guo, J.: Your” flamingo” is my” bird”: Fine-grained, or not. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 11476–11485 (2021) 3, 28 9. Chapelle, O., Chang, Y.: Yahoo! learning to rank challenge overview. In: Proceedings of the learning to rank challenge. pp. 1–24. PMLR (2011) 7 10. Croft, W.B., Metzler, D., Strohman, T.: Search engines: Information retrieval in practice, vol. 520. Addison-Wesley Reading (2010) 3, 31 11. Deng, J., Dong, W., Socher, R., Li, L.J., Li, K., Fei-Fei, L.: Imagenet: A large-scale hierarchical image database. In: 2009 IEEE Conference on Computer Vision and Pattern Recognition. pp. 248–255 (2009). https://doi.org/10.1109/CVPR.2009.5206848 28 12. Deng, J., Guo, J., Xue, N., Zafeiriou, S.: Arcface: Additive angular margin loss for deep face recognition. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 4690–4699 (2019) 1, 3 13. Dhall, A., Makarova, A., Ganea, O., Pavllo, D., Greeff, M., Krause, A.: Hierarchical image classification using entailment cone embeddings. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops. pp. –837 (2020) 3 14. Dupret, G., Piwowarski, B.: A user behavior model for average precision and its generalization to graded judgments. In: Proceedings of the 33rd International ACM SIGIR Conference on Research and Development in Information Retrieval. p. 531–538. SIGIR ’10, Association for Computing Machinery, New York, NY, USA (2010). https://doi.org/10.1145/1835449.1835538, https://doi.org/10.1145/1835449.1835538 3, 4 16 E. Ramzi et al. 15. Dupret, G., Piwowarski, B.: Model based comparison of discounted cumulative gain and average precision. Journal of Discrete Algorithms 18, 49–62 (2013). https://doi.org/https://doi.org/10.1016/j.jda.2012.10.002, https://www.sciencedirect.com/science/article/pii/S1570866712001372, selected papers from the 18th International Symposium on String Processing and Information Retrieval (SPIRE 2011) 4 16. Fagin, R., Kumar, R., Sivakumar, D.: Comparing top k lists. SIAM Journal on discrete mathematics 17(1), 134–160 (2003) 30 17. Hadsell, R., Chopra, S., LeCun, Y.: Dimensionality reduction by learning an invariant mapping. In: 2006 IEEE Computer Society Conference on Computer Vision and Pattern Recognition (CVPR’06). vol. 2, pp. 1735–1742. IEEE (2006) 3 18. Harris, C.R., Millman, K.J., van der Walt, S.J., Gommers, R., Virtanen, P., Cournapeau, D., Wieser, E., Taylor, J., Berg, S., Smith, N.J., Kern, R., Picus, M., Hoyer, S., van Kerkwijk, M.H., Brett, M., Haldane, A., del R’ıo, J.F., Wiebe, M., Peterson, P., G’erard-Marchant, P., Sheppard, K., Reddy, T., Weckesser, W., Abbasi, H., Gohlke, C., Oliphant, T.E.: Array programming with NumPy. Nature 585(7825), 357–362 (Sep 2020). https://doi.org/10.1038/s41586-020-2649-2, https://doi.org/10.1038/s41586-020-2649-2 31 19. He, K., Zhang, X., Ren, S., Sun, J.: Deep residual learning for image recognition. 20. Hjørland, B.: The foundation of the concept of relevance. Journal of the American Society for Information Science and Technology 61(2), 217–237 (2010) 3, 5 21. Hunter, J.D.: Matplotlib: A 2d graphics environment. Computing in Science & Engineering 9(3), 90–95 (2007). https://doi.org/10.1109/MCSE.2007.55 31 22. Järvelin, K., Kekäläinen, J.: Cumulated gain-based evaluation of ir techniques. ACM Transactions on Information Systems (TOIS) 20(4), 422–446 (2002) 3 23. Järvelin, K., Kekäläinen, J.: Ir evaluation methods for retrieving highly relevant documents. In: ACM SIGIR Forum. vol. 51, pp. 243–250. ACM New York, NY, USA (2017) 3 24. Kekäläinen, J., Järvelin, K.: Using graded relevance assessments in ir evaluation. Journal of the American Society for Information Science and Technology 53(13), 1120–1129 (2002). https://doi.org/https://doi.org/10.1002/asi.10137, https://onlinelibrary.wiley.com/doi/abs/10.1002/asi.10137 3 25. Kingma, D.P., Ba, J.: Adam: A method for stochastic optimization. arXiv preprint arXiv:1412.6980 (2014) 30 26. Krause, J., Stark, M., Deng, J., Fei-Fei, L.: 3d object representations for fine-grained categorization. In: 4th International IEEE Workshop on 3D Representation and Recognition (3dRR-13). Sydney, Australia (2013) 27 27. Law, M.T., Thome, N., Cord, M.: Learning a distance metric from relative comparisons between quadruplets of images. International Journal of Computer Vision 121(1), 65–94 (2017) 3 28. Liu, Z., Luo, P., Qiu, S., Wang, X., Tang, X.: Deepfashion: Powering robust clothes recognition and retrieval with rich annotations. In: Proceedings of IEEE Conference on Computer Vision and Pattern Recognition (CVPR) (June
+
+) 27
+
+29. Micikevicius, P., Narang, S., Alben, J., Diamos, G., Elsen, E., Garcia, D., Ginsburg, B., Houston, M., Kuchaiev, O., Venkatesh, G., et al.: Mixed precision training. arXiv preprint arXiv:1710.03740 (2017) 31 30. Miller, G.A.: Wordnet: A lexical database for english. Commun. ACM 38(11), 39–41 (nov 1995). https://doi.org/10.1145/219717.219748, https: //doi.org/10.1145/219717.219748 28 HAPPIER 17 31. Movshovitz-Attias, Y., Toshev, A., Leung, T.K., Ioffe, S., Singh, S.: No fuss distance metric learning using proxies. In: Proceedings of the IEEE International Conference on Computer Vision. pp. 360–368 (2017) 3 32. Musgrave, K., Belongie, S., Lim, S.N.: Pytorch metric learning (2020) 31 33. Oh Song, H., Xiang, Y., Jegelka, S., Savarese, S.: Deep metric learning via lifted structured feature embedding. In: Proceedings of the IEEE conference on computer vision and pattern recognition. pp. 4004–4012 (2016) 2, 9, 27, 28 34. P., M.V., Paulus, A., Musil, V., Martius, G., Rolı́nek, M.: Differentiation of blackbox combinatorial solvers. In: ICLR (2020) 1, 3 35. Parikh, D., Grauman, K.: Relative attributes. 41. Radenović, F., Tolias, G., Chum, O.: Cnn image retrieval learns from bow: Unsupervised fine-tuning with hard examples. In: Leibe, B., Matas, J., Sebe, N., Welling, M. (eds.) Computer Vision – ECCV 2016. pp. 3–20. Springer International Publishing, Cham (2016) 3 42. Ramzi, E., Thome, N., Rambour, C., Audebert, N., Bitot, X.: Robust and decomposable average precision for image retrieval. Advances in Neural Information Processing Systems 34 (2021) 1, 2, 3, 8, 9, 10, 11, 12, 27, 28, 31 43. Revaud, J., Almazán, J., Rezende, R.S., Souza, C.R.d.: Learning with average precision: Training image retrieval with a listwise loss. In: Proceedings of the IEEE/CVF International Conference on Computer Vision. pp. 5107–5116 (2019) 1, 3 44. Robertson, S.E., Kanoulas, E., Yilmaz, E.: Extending average precision to graded relevance judgments. In: Proceedings of the 33rd international ACM SIGIR conference on Research and development in information retrieval. pp. 603–610 (2010) 4 45. Rolı́nek, M., Musil, V., Paulus, A., Vlastelica, M., Michaelis, C., Martius, G.: Optimizing rank-based metrics with blackbox differentiation. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 7620–7630 (2020) 1, 3, 8 46. Sohn, K.: Improved deep metric learning with multi-class n- loss objective. In: Lee, D., Sugiyama, M., Luxburg, U., Guyon, I., Garnett, R. (eds.) 18 E. Ramzi et al. Advances in Neural Information Processing Systems. vol. 29. Curran Associates, Inc. (2016), https://proceedings.neurips.cc/paper/2016/file/ 6b180037abbebea991d8b1232f8a8ca9-Paper.pdf 1, 3 47. Sun, Y., Zhu, Y., Zhang, Y., Zheng, P., Qiu, X., Zhang, C., Wei, Y.: Dynamic metric learning: Towards a scalable metric space to accommodate multiple semantic scales. 48. Taylor, M., Guiver, J., Robertson, S., Minka, T.: Softrank: Optimizing non-smooth rank metrics. In: Proceedings of the 2008 International Conference on Web Search and Data Mining. p. 77–86. WSDM ’08, Association for Computing Machinery, New York, NY, USA (2008). https://doi.org/10.1145/1341531.1341544, https://doi.org/10.1145/1341531.1341544 3 49. Teh, E.W., DeVries, T., Taylor, G.W.: Proxynca++: Revisiting and revitalizing proxy neighborhood component analysis. In: European Conference on Computer Vision. pp. 448–464. Springer (2020) 1, 2, 3, 8, 9, 10, 11, 12, 31 50. van der Maaten, L., Hinton, G.: Visualizing high-dimensional data using t-sne. Journal of Machine Learning Research 9, 2579–2605 (2008) 13 51. Van Horn, G., Mac Aodha, O., Song, Y., Cui, Y., Sun, C., Shepard, A., Adam, H., Perona, P., Belongie, S.: The inaturalist species classification and detection dataset. In: Proceedings of the IEEE conference on computer vision and pattern recognition.
+
+=====
+
+Title: None
+Source: None
+
+Vapor electric apparatus.
+PATENTED MAR. 24, 1908.
+0. 0. KRUH.
+VAPOR ELECTRIC APPARATUS.
+APPLICATION FILED OGT.1B 1905.
+2 SHBETSr-SHEET 1.
+Inventor Osias O. Kruh,
+
+y fitty.
+Witnesses:
+
+Fig.
+Fig. 3.
+Witnesses PATENTBD MAR. 24, 1908- 0. 0. KRUH.
+VAPOR ELECTRIC APPARATUS.
+APPLIOATION nun 0011a. 1006.
+2 sums-sum z.
+Osias O. Kruh,
+
+UNITED sTArns r ENT OFFICE.
+OSIAS O. KRUH, OI SCHENEC'IADY, NEW YORK, ASSIGNOR TO GENERAL ELECTRICCOMPANY, A CORPORATION OF NEW YORK.
+' VAPOR ELECTRIC APPARATUS.
+Specification of Letters Patent.
+Patented March 24, 1908.
+Application filed October 18, 1905. Serial No. 283,258.
+To all whom it may concern:
+
+Be it known that I, OSIAS O. linen, a subject of the Emperor ofAustria-Hungary, residing at Schenectady, county of Schenectady, andState of New York, have invented certain new and useful Improvements inVapor Electric Apparatus, of which the following is a specification.
+My resent invention relates to apparatus in which electric discharges orarcs take place in evacuated inclosures, and more particularly toapparatus using alternating current as a source of current supply.
+The invention may be embodied in devices of this character used asrectifiers, lamps or the like, and embodies various novel features ofconstruction as pointed out more particularly inthe appended claims.
+The invention itsell, however, will be better understood by reference tothe following description taken in connection with the accompanyingdrawings in which Figure 1 represents one embodiment of my invention;Fig. 2 a detail, and Figs. 3 and 4 modified forms of my invention.
+ In vapor electric devices, so called because the arcs therein aremaintained through the medium of a vapor, a plurality of anodes areusually employed where the apparatus is to be used in connection. with asource of alternating current sup ly. These anodes constitute thetermina s of electric arcs which play between the res ective anodes anda common ne ativc e ectrode or cathode.
+Under certam conditions of operation it.
+sometimes happens that an arc takes place from anode to anode, therebyforming a short circuit, which though momentary may be sullicientlyviolent, or if often repeated, to injure or destroy the a paratus. lovercome this trouble by provning the anodes with shields which directthe arc stream emanating from the cathode in a manner to protect theanodes from any s )attering or other emission of nercury from thecathode, of which material the cathode is usually composed, and whichserve also to protect the anodes from any other radiation or emanationfrom the cz-rthodc. The shields are also arranged to protect the anodesfrom. any dropping of globules oi condensed mercury-taking place in theevacuated inclosure in which the anodes are located.
+ In Fig. 1, I have represented a mercury vapor rectifier for changingalternating current into direct current. The rectifiertube consists ofan exhausted receptacle 1, generally of glass, which "tube is providedwith suitable electrodes. The positive electrodes or anodes areindicated at 2 and 3 and may be formed of cylinders or plates, or othersuitable shapes, of artificial graphite, titanium carbid, iron, or thelike. Current is conveyed to each electrode by means of leadingin wireswhich pass through the wall ofthe receptacle 1. hi the case of the anode2, the leading-in wire, usually of platinum, is shown at 4 and is sealedthrough the inner end of a reentrant portion 5 of the tube 1. Theportion of the wire 4 extending between the anode and the reentrantmember 5 is 'surrounded by a coating of vitreous material 5, such aslava, hard glass, or the like. The shieldstor the anode 2 may, ofcourse, vary widely in form and still retain their essential functions.The present arrangement, however, consists of an inner shield 6 and anouter shield 7. This shield 6 is a tube of glass or the like, the lowerend of which may be sealed about the part 5, while the upper end extendsover and beyond the anode. 2 and is closed. An opening 8, however, isformed in the side of the tubular shield 6, which serves as a passagefor the are stream going to the anode 2. The outer shield '7 surroundsthe shield 6 and is conveniently arranged concentric therewith. Thisshield is closed at the top as indicated, and may be.
+ sealed at its bottom portion about the part 5 by which it, as well asthe inner shield 6 'is supported. An o'ening 9 into the outer shleld 7is provider near the lower end'there of and preferably at the side 0posite, the anode 3 which cooperates with t e anode 2. The anode3 isprovided with shields 10 and 11 substantially the same in constructionand arrangement as the shields 6 and 7. Thus no special description ofthese shields is necessary.
+The negative electrode or cathode with which the anodes 2 and 3cooperates, con sists of a body of mercury 12 located in a pocket formedin the lower end of the tube 1. A leading-in wire 13 serves as usual toconvey current flowing between this electrode and an outside circuit. Astarting anode, which like the electrode 12 is of mercury, is providedfor starting the apparatus into operation in the usual manner. ing intothe small pocket or chamber con- The opentaining the mercuryconstituting the starting electrode, is shown in Fig. 1 'at 14, whilethe de ending portion of the pocket is indicate ingdottedlines. Thisstarting electrode and the pocket containing it is, however, shownbetter by'the detail view in Fig.
+rectly to alternating current supply mains such as 16 and 17. Inductancecoils 18 and 19 are joined in series across these mains. The junctionpoint 20 between them we tends to a consumption circuit 21, the otherterminal of which is connected to the oathode 12. For the purpose ofstarting the rectifier the starting anode 13 is connected through aresistance or other current limiting device 22 to one of the supplyleads.
+ By shaking or tiltingthe apparatus so as to bring the mercury of theelectrodes 12 and 15. into momentary contact, a starting arc ensueswhich when the current is in the proper direction, causes the main arcsto start between the cathode and the main anodes 2 and 3. A number, oftrials may perhaps benecessary in some cases before the apparatusstarts, as the direction of current may not at the'first trial be suchas required. When the apparatus is in operation the arc stream from thecathode 12goes to each of the anodes 2 and 3 and before reaching thecorresponding anode it is constrained to follow a path which bends onitself. Thus the arc stream from the cathode 12 passesinto the opening 9and then up through the tubular assage afforded between the concentricwal s of the shields 6 and 7 and then into the opening 8 in the innershield 6 through which it passes to the anode 2. The arc stream as itpasses to the opening 9 is of the nature of a high velocity blast whichnecessarily carries along with it more or less imperfectly vaporizedmercury. The greater portion of this superfluous matter is thrown off bythe arc stream as it turns into the opening 9. As the arc streamcontinues farther and then again changes its direction to pass into theopening 8 any remaining superfluous mercury is likewise projected beyondthe opening by its momentum. The anode is thereby effectually protectedfrom any spattering or other emanation from the cathode. Moreover it isrotected also from any falling drops or globu es of mercury which maydescend from the walls of the tube 1, as the mercury vapor generated inthe apparatus is condensed. Also the anode is protected from the effectof any radiation, perhaps in the nature of ultra violet rays, emanatingfrom the cathode surface. This protection is afforded by the interposedwalls of the two glass shields 6 and 7. The whole arrangement thusconstitutes a most effective means for preventing arcing between anodes.
+ I have indicated in passing, some of the causes which I believe areactive in producing arcing between anodes. I do not wish to beconsidered as guaranteeing the accuracy of what from my observations Inow consider to be the most likely causes of the arcing, since thebeneficial effects of my in vention may be obtained, regardless of thereasons therefor, by following the modes of construction which I havepointed out.
+ Instead of using the apparatus shown in Fig. 1 I may use an arrangementsomewhat as shown in Fig. 3. In this figure I have shown merely therectifier tube without indicating the connections of such tube to itselectric circuits, as such connections are well understood. In Fig. 3,the evacuated receptacle is indicated at 23. The graphite anodes areshown at 24 and 25 and the cooperating cathode at 26. The anodes are asbefore surrounded by cylinders 26 and 27 closed at both ends andsupported in any suitable manner as from the leading-in conductors ofthe respective anodes. Communication with the anode is afforded in thecase of the cylinder 26 by an opening 27 formed in the upper portion ofthe cylindrical wall and on that side of the cylinder away from theanode 25. A cylindrical shield 28, closed at the top and open at thebottom, is mounted concentrically over the inner shield 26 and may beconveniently supported from a small standard 29 extending from theclosed top of the inner shield 26 as indicated. The other anode 25 islikewise provided with an outer shield 30 mounted and arranged in thesame manner as the shield for the anode 24, so that no furtherdescription thereof is necessary. In either case the outer shields28-and 30, in addition to serving as an additional safe guard to protectthe anodes against contact with falling or otherwise projected particlesof mercury, serves also to direct the arcstream passing from the cathodeto the anode. The walls of the shield 28 for example constrain the arcstream to pass in a direction tangential tothe inner shield 26 andthereby prevents. superfluous matter, and particularly condensedmercury, from entering the opening 27 into the inner shield 26surrounding the anode 24. The momentum acquired by the particles as theyare carried along in the arc stream causes them to be projected past theopening 27 so that only that portion of the arc stream enters which isnecessary as a vehicle for conveying current.
+ Still another arrangement of the protect-- ing shields may be employedas indicated in Fig. 4. In this figure the evacuated receptacle of therectifier is indicated at 31.
+I by a number of openings such as at 36, 37
+
+and the like, located about the sides of the shield as indicated.
+The inner shield 35 is closed at its top and open at the bottom andsurrounds the anode 32. It may conveniently be supported by a small rod38 of glass or the like depending from the inner side of the top of theshield 34. The cooperating anode 33 is provided with similarlyconstructed and arranged shields 39 and which re uire no specialdescription. The are from t e cathode 34 enters the openings 36, 37 andthe like, then passes down between the walls of the shields 34 and 35and then up through the open bottom of the shield 35 to the anode 32.The are stream is thereby effectually freed from any superfluous matterand the danger from arcing, due to contact'of such matter with theanode, is thus obviated. The. anode moreover is also well protectedagainst contact with the mercury condensing and falling Within therectifier tube.
+The devices shown in this application are covered broadly by the claimsin my application Serial No. 194,520 filed February 20,
+
+\ 1904, which is now involved in interferences. This present caseislimited to'the improvements on the invention of said formerapplication which are herein described and.
+claimed, and the claims herein are therefore not to be construed ascovering anything disclosed in my said rior ap lication.
+It is evident t at various modifications may be made in .the embodimentof my invention without departing from the spirit thereof, for whichreason I do not wish to be limited to the details shown and. described.
+ What I claim as new and desire to secure by Letters Patent'of the UnitedStates, is
+
+1. The combination of a receptacle or container, electrodes therein, andshields therefor arranged one inside of the other.
+2. The combination of a receptacle or container, electrodes therein, andshields for said electrodes having non-registering openings therein.
+3. The combination of a rece tacle or container, a vaporizable electrodet erein, a plu rality of cooperating electrodes, and shields for each ofsaid cooperating electrodes, the shields for each electrode beinglocated one inside the other.
+4. The combinationof a rece tacle or container, electrodes therein, ands ields for one at least of said electrodes, said shields being arrangedone about the other and rovided with openings located to produce a cange in direction of the arc stream going to the electrode.
+In witnesswhereof, I have hereunto set my hand this'17'th day ofOctober, 1905.
+' OSIAS O. K'RUH. Witnesses:
+
+BENJAMIN B. HULL, HELEN ORFORD.
+
+=====
+
+Title: Greek-english lexicon based on the german work of francis passow
+Source: Henry George Liddell, M.A., and Robert Scott, M.A
+
+10, 222; also with past, Att., Matth., Gr. § 524, 3.—3. with optat., followed by subj., with ay, Il. 11, 386; in Att. this use is dub.—4. the first clause with dy is left out, when it can be easily supplied from the context. 3, 52:9, 245, etc.; or its place is supplied by a part., Ul. 10, 246 —é. 350; 15, 213. EI press a wish, If only... O that... would that... Il. 24, 74, Herm. Vig. n. 190; but ei@e, ef yép and ai ydép are more free. v. ef ydp.—6. with Optat., as a sort of particle of time, of repeated actions, as often as, whenever, Thuc. 7, 79, usu. with impf. or plqpf., sometimes with aor.—II. wirH INDIC., where possibility is asserted, without expressing any uncertainty or question; if, since.—1. with indic. pres., ef pw’ Eoger ToAEuilew, GAAovE wev ners or, Il. 3,67, where no doubt is thrown on the supposition.—2. with ‘indic. past, esp. in oaths and prayers, ef NOTE ToL éxi vndv Epewa, THdE [0b Kpynvov &éAdwp Il. 1, 39, etc., v. el- toTe.—3. with indic. fut NOTE ToL éxi vndv Epewa, THdE [0b Kpynvov &éAdwp Il. 1, 39, etc., v. el- toTe.—3. with indic. fut NOTE ToL éxi vndv Epewa, THdE [0b Kpynvov &éAdwp Il. 1, 39, etc., v. el- toTe.—3. with indic. fut NOTE ToL éxi vndv Epewa, THdE [0b Kpynvov &éAdwp Il. 1, 39, etc., v. el- toTe.—3. with indic. fut NOTE ToL éxi vndv Epewa, THdE [0b Kpynvov &éAdwp Il. 1, 39, etc., v. el- toTe.—3. with indic. fut NOTE ToL éxi vndv Epewa, THdE [0b Kpynvov &éAdwp Il. 1, 39 , yydceat, el Kai Beorecin TOALY ob GAaTaésetc, Il. 2, 367,379, where the fut. is looked on ascertain: Att. the optat: with av freq. follows, to soften the positiveness of the phrase, Soph. El. 244. So the indic. often follows, even after the opt. expressing a simple supposed case, e. g. weot pevoiveor, el TeAéovorr, Il. 12,59, they tried whether they could; where they are represented as it were saying, We will try whether we can, O as to add vivacity to the sentence: esp. oft. in Att. Prose. The indic. pres. or fut. is also put after ef in protasis, when not a mere probability, but a necessary result on a condition is intended, Il. 5, In Att., e¢ with indic. is used not only of probable, but of actual events, to qualify the positive assertion, and so much like 671: most freq. after Gavudlo, also after other verbs, esp. expressing strong feeling, e. g. dyavaxtéw, detvov ToLoduat, dndoi, ete., Hdt. 1, 155, Thuc. 6, 60, Plat. Lach. 194 A.—4. In Att. where ei with impf. is followed by dy with impf., the first implies that a condition has not been fulfilled, the second that a result has therefore not taken place; e. g. ef Te elyev, édidov dy, if he had it, he would give it... (but he has it not.)—5. with indic. aor., followed by indic. aor. with dv, it expresses the same thing in reference to a past time, for which in Lat. both verbs would have been in subj. plapf., ef rz dy, Edwxev dv had he had it, he would have given it, cf. Il. 21, 211, 544. In this case the impf. with dv may follow, ei érreicOnv, ok dv Hppdcrovr, had 1 obeyed, I should not have been ill, Buttm. Gramm. § 139, 9, 4. and 10: sometimes, but not often, this day is left out with the impf. 7v, Thuc. 1, 37. More rarely the opt. with day follows ei wf and the indic. aor., Il. 5, 388 ;17, 70.—I. wirH suBsUNCT., ei is scarcely to be distinguished from édv, though an attempt has been made to explain ef as expressing greater probability in the condition, suppose that, Kihner Ausf. Gr. § 818, Anm. 1, Herm. Soph. Ant. 706 ; much more rare than the former, but most freq. in Hom., Il. 1, 340, Od. 5, 221, etc.: ef kev with subjunct. being the more freq. For the Att. it was for- merly laid down that only éév or 77v, never ef was used with subjunct. : but many exceptions are found in Trag., as Soph. O. T. 198, 874, O. C. 1443, Ant. 710, 1032, cf. Herm. Aj. 491: also in comic wr., as Ar. Eq. 698, 700, Pac. 450.: nay it has been admitted even in prose, as Thuc. 6, 21, Xen. Mem. 2,.1, 12, Plat. Phaedr. 234, Rep. 579 E: in later‘authors «/ veth subjunct. is very common, with cptat., without apodosis, # «- | BH rm. Vig. n. 304: cf. also ef Ke— EIAP IV. with ParTicip. instead of in fie where oti is usu. supplied, but rave Soph. Aj. 686, and Herm. ib. 179, Bornem. Xen. Mem. 2, 6, 25.—V. WITH INFIN., sometimes in Hat. e g. 3, 105, 108, in orat. obliqua.— Ey from the first clause must sometimes be supplied with each of several fol- lowing clauses, even when these are in different moods, Schaf. Mel. p. 111. Whether, in indirect questions and after verbs containing a question, doubt, uncertainty, etc., or Bede, etc., we do not know whether to be a god, Il. 5, 183; in Hom. also free in ellipt. clauses, where wepoevoc, okorov, etc., must be supplied, etc. KnpdKecot KéAEvoaY, Gui TPL OTi out Tpinoda péyay, (TELPNOGLEVvOL) & memiOotey Ilndeidnv, trying whether they could move Achilles, Il. 23, 40; where the optat. without dv is used, because the action is past; ef. fl. 10, 206; 20, 464; if present or future, it would require e¢ xe or ééy with subj., Il. 5, 279, though Att. ef with subj. is used even in this sign. — C. Regularly ei begins the sentence, and so is followed by the articles: hence all compds., as & Keé, el mp, el uh, et Kal, etc., may, be best referred to their own specific heads. It is preceded by one or two conjunctions: — I. «ai el and if, even though, implying that the case is not so, Il. 20, 371; Kai et mov, Od. 7, 320, also kai ef ke, which follows the same rules as ef ce, Att. cel, xaév, Kavei: in Att. also 6uwe is oft. added in ap odosis (even though, yet still), though this word is sometimes attached to the end of the conditional clause, to which it adds force, Aesch. Pers. 295, Cho. 115: care must be taken not to confuse the end with ed, Herm. Vig. n. 307.—II. ob? ei, nay not if, not even if, Il. 5, 645; 20, 102, Od. 4, 293. —III. ed. and ei Te or (as Wolf writes it) cel, ooel Te, as if, as though, in comparisons, Od. 7, 36, I, 13, 492, 19, 366, Od. 19, 39: the Att. also inserts dy or wep, Gorep él, O¢ av el, Gorep dv ei or Worepavel, Heind. Plat. Gorg. 479 A. Ei, Dor. for 7 and of, cf. mez. Eid, also properisp. ela, and poet. trisyll. éia, Lat. eia, a cheering or stimulating exclamation, on! up! away! Trag., etc.: also come on then! Aesch. Ag. 1650, and Plat. ; ela vuv, well now! Ar. Pac. 459, stronger than dye vuy: also ela Oy: éa and etaare akin to it. [@ al- ways, whence Gramm. wrote éia, Vv. Reisig de Constr. Antistr. p. 19.] Eig, 3 sing. imperf. act. from édo, Hom. ; Eidew, f. -dow, to cry sia, like aidGw from ai, and ebdfw from eda, v, Valck. Diatr. p. 20. Eiduevy, ie, 7. & low, moist pasture, water-meadow, év eiaweva EAeoc, Il. 4. 483, in Ap. Rh. a flooded meadow. (Usu. deriv. from efatat, jvTat, neat, juevoc, Whence some Gramm. wrote ciapevy, cf. xéOnuwac: Buttm, however, V. #ldecc, connects it with Hiov.) ; Ei dv, Ep. and Ion. e ke Contr. into ééy and jy. But et...dv seems permissible both in Hom., and Att., where some words come between, Il. 2, 597, cf Herm. Vig. n. 303, Elavoc, 7, 6v, Ep. for éaéc, Il. 16,9. Elapéuacboc, ov, (slap, pacbdc\ with youthful, sweetly breasts, Ant. 397 Eldpo- span, &c, (etap, TépToual) joying in spring, Orph. Eldpo- span, &c, (etap, TépToual) joying in spring, Hom., Elatat, eiaro, 3 pl. pres. and impf., poet. for Ion. Earaz, gato, and this for qvraz, WTO, from 7juat, Hom. filato, 3 plur. imperf. mid. from et‘, for #vTo, i.e. #oav, occurs only Ou. 20, 106, where Buttm. Ausf. Gr. Anm. 14, n., would read ei-aro. Efaro, 3 sing. plqpf. mid. from év- pout for elvto, they had on. E/Bipoc, ov, trickling: from EI’BQ, Ep. form of AeiBw, to drop, let fall in drops, Hom., who regul. uses it in phrase daxpvoy eiBecy and Kata Odxpvov elBewv, to shed tears. Mid. to trickle or run down, drip, Hes. ‘Th. 210: but also as in act., ddxpva elBouévn, Soph. Ant. 527. Ei ydp, for if..., Il. 20, 26: but usu. —II. expressing a wish, O 7f..., O that..., would that... Lat. utimam! c. optat., ed yap ’A@nvn doin Kapto¢ éuoé, Il. 17, 561, so ef yap tot, Od. 17, 513, and ef yap mwc, Od. 16, 148. But Hom. ig tage has ai ydp, ai vip On, at yap 6n ToTE, at yap Two. Tike (Moraine: use c. inf. is rare, at yap, Too &WV;...240¢ yauBpo¢g Ka- A€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€ wish without alluding to its result, Nitzsch Od. 1, 265. Elye, if however, adding a condition which makes the thing dependent upon it unlikely or impossible, e.g., oikévee e0éAetc (évat etye wév el- detc, 6ooa Tol aica Kyde’ dvaTAn- out, évOade k’ ade wév tode OGua ov 4ococc, thou wishest to go home: yet of thou didst know..., ete., Od. 5, 206,—II.. if then, since, Lat. siquidem, of things which are taken for granted, Il. 1, 393, Od. 16, 300, Herm. Vig. n. 310. Cf. etzep. Ei yodv, even if, implying that the thing will not be so, only once Hom., viz. Il. 5; 258, ubi al. ef y ody. Ei 0’, dye, used in cheering, etc., on then, come on! oft. in Hom., who also has plur., e/ 0’, dyere, Il. 22, 381. He usu. joins ei. 0’, dye viv, el 0’; aye On, et. 0’, dye unv, or el 0, dye tot, followed by imperat., also ef 0’, tye Tol, Od. 9, 37. For the imperat. dedpo is, found, Il. 17, 685, and in speaking to one’s self the subj. aor., Od. 9, 37, or indic. fut., Il. 1, 524; 9, 167. The phrase is elliptic, and would be in full ef &’ é0¢Aece or ef dé BobAet, kye, but if thou wishest, come, and so serves to qualify the imperat., like Lat. sis vide, fac sis, agite sultis, Nitzsch Od. 1, 270. Eidaévouat, poet. lengthd. form of eldomat, to be like, rwvi, Nic. ElddAmoc, n, ov, (eidog) formed; here.ce shapely, comely, Od. 24, 279.— [L. like, looking like, Anth. ElddAAouat, = eldaivouat, ivdda- AQUAL. ElddAAouat, = eldaivouat, ivdda- AQUAL. ElddAAouat, arog, 76, (&du, as if lengthd. poet. from &dap) food, meat, victuals, Hom.—2 Of cattle, fodder, forage, etc. 5, 369.—3. also a bait for fish, Od. 12, 252.—4. weAicone dvOiuov eidap, of honey-cakes, Theocr. 15, 115. Ep. word, Ei 0é, with no apodosis, is elliptic, as Il. 9, 46, ef dé kal adrol, devydv-ran, but a eer (will), let them flee, where é0éAovcr is to be supplied, as in ef 0’, dye: so too 9, 262, e dé, (0€Aetc), a ee pev Gxovoov. In Il. 21, 487, and Od. 2, 115, the apodosis is implied in the protasis.—II. in complete sentences, but if, even if, oft. in Hom. It may be followed by any particle which follows e/, v. esp. El wéy: on ei 0’ od and ef 0’ ovv V. ec un. We have the notion of et dé strengthd. in ed 0’ av, if on the other hand, Od. 16, 105. Eidéa, ac, 7, for idéa, dub. in Ar. Thesm. 438. Eidéyera, opt., and eidévaz, inf. of olda, q. V. Ei 02 pH, v. sub et 7}. Eidéyera, ac, #, an odious, ugly look, LX X.: from EldéyOae, é¢, (eldoc, &yBoc) of hateful look, in genl. ugly, Polyb.: putrid, fetid, Hipp. Eidéw, for eid, subj. from oida. Ki 67, expressing a supposition which cannot be contradicted, 7f now, seeing that, ll. 1, 61, esp. after 7, Il. 1, 294, 574: also in Indirect questions, whether now, Od. 1, 207: always c. indicat. Eidjua, aroc, 76, (eidévar) knowledge. Eidnovixdc, ady., with knowledge, skilfully. Eidnovix, ov, gen. ovoc, (eldévat) knowing, experienced, skilled, espé, tivéc, Clem, Ad. Adv. -uévaec. Eidnoév, Ep. inf. fut. for eidévat, of eidévat, of eidévat. Eidotc, ewe. 7,  a thing, Strab.: from Eidorolée, 6v, (eldoc, rotéw) specific, characteristic of a species. Eldoé, coc, 76, (*eldw) that which is seen, the form, shape, figure, Lat. species; freq. of human form in Hom., who usu. has the acc. eldoé dptoroc, ayntoc, Kakdc, GAéyKtog, buoLoe, ete.; sometimes opp. to the understanding, sometimes to bodily strength, v. Od. 17, 454, Il. 21, 316: also of the appearance, look, as of a dog, Od. 17, 308, cf. déuac. Esp. beautiful form, like Lat. forma, Hdt. 1, 199; 8, 105, ete. In Trag. periphr. for the person, Soph. El. 1177.—Il. in genl., a form, figure, fashion, sort, particular kind, cidea, Tov KvBwv, Hdt.'1, 94, eidoc vdcov, Thue. 2, 50, etce.: esp. species, opp. to yévoc, genus, hence also = idéa, Plat., and Arist., cf. Ritter Hist. of Philos. 2, 265, sqq.—III. in later authors ra edn are spices, fine and costly wares. Eldodopéw, O, (eldoc, gépw) to represent, express, Dion. H. EidvAatov, ac, 7, Eidyia, wife of Aescus, Lyc. 1024. EidvAatov, ov, 76, dim. from eldoc strictly a@ little form or image: usu. @ short, highly wrought, descriptive poem, mostly, but by no means only, on pastoral subjects, an idyll, cf. Plin. Ep. 4, 14. EidvAouat,= eiddA2ouat, eidaivo pat, Pemp. ap. Stob. p. 46, 9. EidvAouat,= eiddA2ouat, eidaivo pat, Pemp. ap. Stob. p. 46, 9. EidvAouat, = eiddAouat, eidaivo pat, Pemp. ap. Stob. p. 46, 9. EidvAouat, = eiddAouat, eidaivo pat, Pemp. ap. Stob. p. 46, 9. EidvAouat, = eiddAouat, eidaivo pat, Pemp. ap. Stob. p. 46, 9. EidvAouat, = eiddAouat, eidaivo pat, Pemp. ap. Stob. p. 46, 9. EidvAouat, = eiddAouat, eidaivo pat, Pemp. ap. Stob. p. 46, 9. EidvAouat, = eiddAouat, eidaivo pat, Pemp. ap. Stob. p. 46, 9. EidvAouat, = eiddAouat, eidaivo pat, Pemp. ap. Stob. p. 46, 9. EidvAouat, = eiddAouat, eidaivo pat, Pemp. ap. Stob. p. 46, 9. EidvAouat, = eiddAouat, eidaivo pat, Pemp. ap. Stob. p. 46, 9. EidvAouat, = eiddAouat, eidaivo pat, Pemp. ap. Stob. p. 46, 9. EidvAouat, = eiddAouat, eidaivo pat, Pemp. ap. Stob. p. 46, 9. EidvAouat, = eiddAouat, eidaivo pat, Pemp. ap. Stob. p. 46, 9. E A. to see, behold, look at, mostly in aor. eidov, in Hom. and Ep. oft. without augm. Zdov, inf. idezy, in I. and Ep. also idwui, part. idov in Hom. freq. with an adv.,{+~. a,dvra, dypetov lidar, eyeing with astern glance, etc.: he also freq. has more fully 6¢0arpoiorv id. The same act. signf. belongs to the aor. mid. eidéunv, in Hom. more freq. Ep. idwut, inf. idécOaz, subj. idwuat, imperat. idod: with which Hom. has also 6¢6a2,uoi-ovv, or more freq. év 666.,-to see before the eyes: this tense alone is joined with recpdouat, in phrase aye, Te phoouat 768 idwuat, well, I will make trial and see, Od. 6, 126, cf. 21, 159: also without zecpdouar; Just our te look and see, Od. 4, 22; 10, 44. But Hom. also uses both aorists of mental sight, to see, perceive, as must be the case in I. 21,61, dd9a idwyar evi dpe-civ, 708 daeta, ef. ll. 4, 249, Od. 21; 112. This definiteness belongs only to the oldest Greek: in later poets to perceive by any of the senses, Jac. A. P. p. 189. In construction, idea and idéfae are either absol., or used c. acc. followed by a relative clause, where the relative is to be resolved by 67z, so that the “acc. is not strictly the object, but belongs to the verb in the relat. clause, e. g. Od. 10, 195, eldov..vicov, tHv mépt movToc éoteddvura:, i. e. eidov éTt TEept vyoov ovToc éoreduivwtat; ‘though in the remarkable passage, GAbyxov...odTt yap Ide, he saw, i. e. enjoyed not the favor of his spouse, Il. 11, 243, ydéprv is the object; (this phrase must not be confounded with xapv eidéva, v. infr.): freq. also ideiv & Tt, more rare éxé Te, Il. 23, 143, and mpéc Tu, Od. 12, 244, to look at or towards a thing. The imperat. mid. (dod, see, occurring first in Att., is mostly used as an exclamation, lo! behold! Lat. ecce: but it is then written (dod, or sometimes idoy. where it is a true imperat. it remains idod, e.g. idod we, Eur. Hec. 808. Opdw is used as pres., épaxa as perf., dwouat as fut. (for eldfow belongs to signf. B, to know.) But to the signf. to see, belong—II. the Ep. and Ton. pass. and mid. eldouac: aor elodunv, in Hom. also éevodunv, ao, arc, In pass. signf., to be seen, appear, seem, eideTat Hap, doTpa, the day, the stars are visible, appear, Il. 8, 555, cf. 24, 319, Od. 5, 283: metaph., 76 Oé tor Kp elderar elvar, for that seems unto thee to be very death, that is very death in thine eyes, Il.-1, 228, cf. Od..9, 11, etc.; and feq aira "Oyce Képdlov eicato Oud: hence— Z. to have the appearance or look of a thing, take the appearance, make a show of a thing, eica7’ iwev é¢ Ajuvor, he made a show of going to Lemnos, Od. 8, 283; eloato, Oc te furor, it had the look as of a shield, Od. 5, 281; and c. dat., to make one’s self like, be like, eicato foyynv TloAirn, she made herself like Polites in voice, Il. 2, 791, cf 20, 81. Most usu. in part. pres. and aor., eidéuevoc, eioduevoc, fetodjtevoc, besides which Hom. uses only 3 sing. pres. and aor.; and once 2 sing. and 3 plur. aor. An impf. eels he was seen, occurs first in Ap. B. to know: which sign. comes from the perf., for what one has seen or observed, that one knows: hence the word is mostly used of mediate knowledge, whilst for such as is immediate, cavalleria is most usu., Wolf Dem. 461, 2. The tenses which belong to this sign are these: perf. used as pres., oida (in Alcae. 94 e, p. 72, dida) I know, c. part. eidde, inf. eidévae, Ep. tduevac and iduev, imperat. icf. sabj. eidd, Ep. also idéw, opt. eideiny: plapf. as imperf. noe and jdea, Att.-ndy, I knew: fut. eicouat, more rarely and mostly Ep. eidjow (also in Hat. 7, 234): aor. and perf..are supplied from yeyvd- oxw: though in later Greek we have an aor. eiéjaat, Arist. Magn. Mor. 1, 1,3, tc. The forms are so irreg. in pres. ard impf, that they can only be fullyicated of in grammars. In Hom., ica, and Dor., oida¢ is 2 sing. perf. for vic@a, e G. Od. 1, 337, (in Att. also sometimes oticac, Cratin. Malth. 10, cf. Meineke Menand. p. 122: iduev 1 pl. for icwev: besides iSuevar and tduev, inf. for eidévar: idéa subj. for eld, Il. 14, 235. eidere 2 pl. subj. for eld, Od. 9, 17, eidere uev for eldduer’, Il. 1, 363, and idvia fem. part. for eldvia, but only in phrase idviqat zparidecat: plapf. 2 and 3 sing. 7eidyc, jeidn for ydne, Hon. Il. 22, 280, Od. 9, 206, 3 pl. tcav for yaar, IL 18, 405, Od. 4, 772; yaar, Eur. Cyel. 231. n both futures, yet e/djow only in Il. 1, 546, Ep. int. eligoeuev, Od. 6, 237, where it almost passes Into signf. A, to see, and so in the hymns. For the rest v. Buttm. Ausf. Gr. § 199, 111, and Catal. in voc. [icacx has usu. f, as Od. 2, 211, but sometimes also j, in arsis, as Od. 2, 283.] -In Hom. it must be rendered sometimes by to know, understand, have knowledge of, sometimes by to know, discern, perceive; later to come to know, learn; though it may be so taken however in Od. 2, 16: very freq. strenethd. by ed or odga, esp. ev _ olda, I know well, and Part. et eiddc, also eb icOc, know well, be assured. It is often followed by a clause with cic, éxwe or 6rt, and, in case of doubt, with eZ, whether, rarely with the relat. Also followed by acc., or in-fin. Hom. has the peculiar usage, vuata, pndea olde, he is knowing, skilled in wise counsels; and so still more free with ads., memvuuéva, Keyaplouéva, gira, UpTla, iTLa, Ked-ya, GOeuiorra eidévat, but usu. in nart. e{ddac. In this sign, to be skilled im, the word also takes a gen. in Hom., mostly indeed c. part., e. g. rozuv ev eiddc, cunning with the pets ol TEKTOOUVaWY, wayNC, ELC.; but #: in pres. indic., it 15, 412. The inoperat. is freq. in protestations. Lastly Hom. uses, EIEN like totw Zetc, icrw vir Zeve, let Jove know it, be witness, Hom.; Dor. ittw Z.: ydpiv eidévat tevi, to acknowledge a debt to another, thank him, first in Il. 14, 235, Hat. 3, 21, but most freq. in Att., and prose. Post-Hom., usages:—1. to be in a condition, be able, have the power, c. inf., Jac. Anth. 2, 1, p. 308—2. oid’ 671, oic@ dre, used absol. parenthetically as a particle of affirmation, J know, ou know it well, Wolf Dem, 508, 17, eind. Plat. Gorg. 486 B.—3. olc@’ ody; freq. interrog. form, usu. answered by oo’ olda, Valck. Hipp. 598. —4. olc#’ 671, also oicf’ 6 and oic’ @¢, followed by imperat., gives a command without specifying what, as if this was known before, esp. oia@’ 6 dpadcov, for dpdcov, oic@’ 6, v. sub dpdo. (The word always has the digamma in Hom., Fidov, Fede Ete., which remains in Lat. videre, Sanskrit. vid scire, Germ. wissen, our to wit or wot. On the difference of eidwaver from ywyvékerr, V. ywyvéoka, fin. EidwAeiov, ov, 76, (eidwAdrov, bbw) sacrificed to idocs; as subst. 70 eid., Nas EidwAoAarpeia, ac, 7, worship of idols, idolatry, N.T.: and EidwrodarTpéw, G, to worship idols, Eccl.: from EidwAoAdrpnc, ov, 6, 7, (eidwAoAov, | Aarpec) an idol-worshipper, idolater. Eido26u0pdoc, ov, (eidwAov, wopdy) formed after a likeness, like an image, Geop. e EidwAov,ov, 76, (eidoc) ashape, figure, image: in Hom. of disembodied spirits, esp. GpoTdv eidwha KkauovTwy : any unsubstantial form, esp. a vision, phantom, Hom., etc.: hence a phantom of the mind. a fancy, Plat. Phaed. 66 C. —Il. an image in the mind, idea, Xen. Symp. 4, 21: esp. with the Stoics, Cic. Fam. 15, 16.—Il. an image, statue, yuva.xoc, Hat. 1, 51, 6, 58—2. esp. of a god; hence an idol, false god, LXX.—IV. eidwaa odpavia, the constellations, Lat. signa, Ap. Rh. Eidwiorhacréw, 0, to form, model, Heracl. + from EidwiérAactoc, ov, (eidwAoréc) to make an image, eldwAov eid., Plat. Rep. 605 C: to represent by an image or figure, tid, Diod.—2. to body, image forth, depict by words, Longin. Hence y Eidwhoroinate, ewc, 7, « figuring : representation, Sext. imp EidwAoroiéc, ac, 7,=foreg., Plat. Tim. 46 A. EidwAoroiéc, 4, dv, (eidwdo- totoc) of, belonging to figuring or re- presenting, Tévn, Plat.-Soph. 235 A. j sb mad OV; oe ToLéw) figuring, forming, making figures or weer: as subst. 6 e/d., Plat. Soph. 239 D. Eidwrovpyicdc, 9, 6v, (eidwrov, *%nyw)=cldwAoroikoc, Plat. Soph. 266 D. Eldwrovpyicdc, é, (etdwhov, puivo- feat) like an image, Plut.? Eldwrovpyc, é, (eldwrov, yaipw) delighting in idols, Synes. led Elev, Att. 3 plur. opt. from efué, for eijcay, be it so, well, good, proceed, or to proceed, Lat. esto: a very common particle, esp. in Att. dialogue, in passing to the next point, Herm. Eur. Supp. 795: the phrases GAA elev, elév ye, clev Of are more rare. also to express impatience, Ar, Nub. 176. [elev in Att. poets is sometimes used as a spondee, Aesch. Cho. 657, Ar. Pac. 663.] Elevator, opt. aor. 2 act. from type: but eyv, opt. pres. from sip.4 Elevator, adv., (elevate) at once “orth- with, instantly, Al, and Ion. Elevator, inter. J wish! O that! would that! Lat. wtinam! Od. 2, 33: the Dor. ai#e is more free. in Homer: on all OgeAAov and ddeAov, ec, e, ¥. dgeiAw: Cc. opt., of things possible, but not likely; with the past tenses of indic. of things impossible: later also the inf. follows e/@e, Herm. Vig. n. 190, a, cf. sub ed yap. Elevator, E. -iow, poet. for 26iw Elevator, perf. pass. from é6iGw, in the accustomed manner Diog. L. Elevator, Att. for govxa, q. v. Elevator, perf. from the. “ Elevator, ov, 6, (eikac) epith of the Epicureans, because they commemorated their founder’s death. On the twentieth of Gamelion, Ath. 298 D. Eixalo, f.-dow, Att. pass. 7xa-cua, Dind. Ar. Eq. 230, Piers. Moer. p. 182, and on. the eugm. in genl. v. Buttm. Ausf. Gr. § 84, Anm. 3, (e/xéc). To make like to, represent by an image or likeness, portray, Xen. Oec. 10, 1. hence in pass., eleov ypady eixacpe-vy, a figure coloured to the life, Hat. 2, 182; aleroc eixaou., a figure like an eagle, Id. 3, 28; hence—IlI. to liken, compare, Ti Ttvt, Aesch. Cho. 633; ek. TL kai Tl, Hdt. 9, 34, etc.: hence to compare and infer something, to conjecture, guess, Lat. conjicere, esp. im phrase @¢ elxaoat, Hat. 2, 104, et3.: and c. dupl. acc. to guess to be, [Lut. 4, 31, Aesch. Supp. 288, Soph. Ant. Pass. to be like, resemble, revi Eur. Bacch. 942, 1253; also apug tu va, Ar. Ach. 783. Elevacy, inf. of a lengthd. aor. ei Kabov, from etka, to yield, Soph. ete, ; for there is no such pres. es eikdbw, Elmsl. Med. 186, Ellendt Lex. Soph in v. Ei Kai, even though, although, c. indic., Hom. ; c. op é., Il.: distinguished from «ai el by expressing that the thing is really so, Herm, Vig. n. 307: ef. ei C. ElkatoBovalu, ac,7,rashness, Ecel.: from EixaPcvAoe, ov, (elkatoc, Bovan- rash, ill-edwised, Eccl. Eixa:cA5yoc, ov, (eikatoc, Aéyo, talking ut random, Philodem. ap. Vol Herevl. 2, 10. Firacouv0éw, 6, to speak inconsiderately; and Kixaouidia, ac, h, thoughtless talking, ususeless babble; from Elkar6uddoc, ov, (sixaioc, wiboc, talking at random or to no purpose, Eccl. 5 Hikacoppnuoovvn, G,=elkavopvbew, Eixaroppnuoovvn, n¢ = elkacouv- Gia: from é Elxacoppuorv, ov, gen. ov, (elkat oc, pyua)=elixacouvboc. Bixaioc, ata, aiov, without plan purpose: random, rash, hasty, nearly = Lat. temerarius, Soph. Fr. 288.— IL—rvyeév, casual, hence common, worthless, Luc. Adv. -wc, Joseph Hence. Eixavoctvn ne, 7, thoughtlessness Timon ap. Diog. L, 5 11. 399 EIKO Bixarétys, ntoc, 7, =fcreg., Philo- | warring against images, assaulting im- dcm. ap. Vol. Hercul. 2. 9. Eikdc, Gdoc, 7, (elkoor) the number twenty, for elxotde.—Il. the twentieth day of the month, sub. 7uépa, Hes. Op. 790, 818: also pl. eladdec, Ar. Nub. 17. One of the days of the Eleusinian mysteries was also so called, Eur. Ion 1076. Eixdoa 1 aor. inf. act. from ela- Q. “Hixdodw, Aeol. and Dor. for elxa- $a, Sapph. 34. Wixdoxia, ac, 7, (elkafw) a likeness, image, representation, Xen.—II. a comparison, Plut.: a conjecture, a guess-ing, Plat. Rep. 534 A.: Rixacua, atoc, 76, (elxdlw) a likeness, image, Aesch. Theb. 523. Eixaopoc, od, 6, (elkalw) one who conjectures, a guesser, diviner, TOV weA-A6vrwy, Thue. 1, 138. Hixaorexde, 4, 6v, (eixdla) of, belonging, suited to representing, guessing, OF interpreting: 7 eik., Sub. Téyvn, the art of copying or portraying, Plat. Soph. 235 D, ete.: rd eix., sub. ér(bpyuura, aduerbs of doubting. Adv. ‘KOC, by conjecture, by guessing, Elkaarée, %, bv, (e1xagw) to be compared, like, Soph. T. 699: copied, represented, i; Eixdre, Dor. for elxoae. Elke, <i sev, and ¢t...dv, if, very freq. in Hom., and Ep., the same as say, q. V., usu. c. subj, but. c. opt. Od. 7, 315: Att. c. Opt., never.c. subj., Plat. Legg. 807 C, Xen. Ages. 1, 1, cf. Matth. Gr. Gr. § 525, 7, a. Onits difference from ai «xe v. Thiersch Gr. Gr. § 327, cf. § 329, 330. Elkscy plqpf. act. of tue. Like Averpoc, ov, (etkedoc, dverpoc) dream-like, Ar, Av. 687. Elxedoc, 7, ov, (elxdc) like, after the form or fashion of, tv Hom.: also see aoe Eixg, Adv. of eixatoc, without plan or purpose, heedlessly, rashly, at random, at venture, Lat. temere, Hipp., Tragg., Plat., etc.—2. in vain, to no purpose, N. 'T. Rom. 13, 4. HixoBoréa, G(eikh, BoAj, BdAAw) to aim or act at random, at a venture, Ar. Pr. 549, Hixovica, f. -low, (eixdv) to mould, fashion, Plut.:. to copy. Elkovirde, 7, Ov, (elxov) representing a figure, copied from it, dyahud Tvo, a portrait statue, Callix. ap. Ath, 205 F.—II. counterfeited, forged, pretended, Anth. Adv. -Kdc. Eikéviov, ov, 76, dim. from elxdy, a little image or figure, Polem. ap. Ath. 574 C. Elxévicue, atog, 76, (eixovitw) a topy, image, Anth. Hixovicwog, od, 0, (elkovilw) a delineation, esp. by words, Lat. effictio, Plut. = Eixovoypavéw, @, to delineate, describe, Philo; and Elxovoypidia, ac, 9, @ sketch, description, Strab.: from Elkovoypadog, ov, (elkav ypddw) painting figures; as subst., 4 painter, Arist. Poet. [a] Hixovoacyia, ae, 7, (etxov, Adyoc) aapeatins speaking, Plat. Phaedr. 267 Eixovoudyia, ac, 4, a war against dols or images, Eccl. : from ? oS) ¢ BMeOMOUCY 9G, ov, (elkor, udyouat) ages, Eccl. : from ? oS) ¢ Elxovorolé6c, 6v, (éixév, Totéw) making figures or images As subst., Arist. Poet. Elxéc, Ion. oikéc, roc, T6,. that which is like, esp. like truth, likely, probable, reasonable, a likelihood, Kur., etc., in Hat. usu. ra olkéra, likelihoods, 1 155, etc., 70 od. eixdc, Thuc. 2, 89: KaTa TO €iKOc, in all likelihood, Thuc. 1, 121; also 7@ eixéru, Thuc. 6, 18: mayr7i T@ olx6TL, Hdt. 3, 103: eixéru, sub. éori, it is likely, c. inf., Eur., Thuc., etc.—2. eixota, propositions generally true, likelihoods, Arist. Org. —II. reasonable, fair, equitable, Thuc. 2, 74, etc.; mapa TO eikO¢, unreasonably, Id. 2, 62: cf. émtecxgje. Neut. part. from eixa, focxa. Compar. eixd- TEPOV. EixocdBotoc, ov, poet. éeux. (elxo-ot, Bovc) worth twenty oxen, Od Eixocdedpoc, ov, (elxoot, dpa) of twenty sides or surfaces, Plat. Hixooastiec, &c, (etxoct, roc) of twenty years, Hdt. 1,136. Hence Eixocaeria, ac, 7, 4 period of twenty years, Phil. Hixooaeric, idoc, 7, pecul. fem. of elkooaeThc, a woman twenty years old, Plat. Rep. 360 E. Kixoodxce, poet. éerk. (etkoor) twen- ty times, Il. ElxoodkAtvoc, ov,=eixooikd.woc. Eixocdkwdos, ov, (eixoat, K@AoY) of twenty clauses. Eixoodkwres, av, (eixoot, KOT) with twenty oars. : Elxocdunvoe, ov, (etkoot, uqv) of twenty months, or so old, Anth. Elxocdrnyxve, v.=sikocin., kiovec, Chares ap. Ath. 538 D. EixocarAdotoc, a, ov, and Eixocariticiwy, ov, Plut. (etxocr) twenty-fold. ; Eixocde, é0oc, 7),=eixde, rare form, Sext. Emp. ' Eixocacréduoe, ov, (eikoot, oT adt- 0) of twenty stadia, Strab. tElxécatoc, ov, 6, the twentieth, Tzetz. Elxoodgvaaroc, ov, (etxoat, d0AAov) with twenty. leaves, Addor, Theophr. tElxocernpic, ioc, 7, (eixect, ét0¢) a period of twenty years, Dio C. Elxooérne, 6, fem. -étic, Loe, 7}s= elxooastync, Anth. Elxoonpne, ec, (etkoot, Gpw) with twenty banks of oars, Ath., like rpz#pne. EVKOSI, poet. éeécooz, and before a vowel éeéxoowv, of, al, td, indecl. twenty, Hom.: Dor. elxati, Sanscr. vingati, Lat. viginti. ElxociBoroc, ov,=elxoodBotac. Elxoo.va, or -d¥o, (etxoot, dtw) two and twenty. Elxootedpoc, ov,=elkoodedpoc ; el- Koolevvéa, nine and twenty, Ath.; ei- Kooves, six and twenty ; and eixootér- Ta, seven and twenty, Hipp., are all suspected by Dind., who prefers eiio- olvevvéd, etc. Hixooverie, é¢, fem. -etic, dog, ; =elxooaert7c, Dio C, Elxootxarrétpatog, 7, ov, (etkoct, Kai, Tétparoc) the twenty-fourth, Anth. ElkocixAtvoc, ov, (elkoot, KAivn) with twenty couches or seats at table, Diod. ; Eixéouuvoc, ov, (etkoot, uva) (or rather -uvéwc, Lob. Phryn. 554) of twenty minae, Lys. ap. Poll. 9, 57. Eikoow7#piroe, ov, only Il. 22, 349, elk. Growa, @ twenty-fold ransom. (From eixoou and vApitoc, vAptotoc, twenty-fold without dispute ; others from elxoot épivovTa, i. e. &toovpueva.) EIKG tElxécroz, ol, late torm fur eixuse, Anth. append, 262. 4 Elxoovoxté, (eixoot, OKO) twenty: eight, Diod. Euxoovte, ioc, 7, (elxoce-wévrTe, ETo¢) five and twenty years old, Anth. ; Elxoourévte, (eixool, TévTe) twenty-five, ap. Dem. 926, 4. Elkooinnyve, v, (etxoot, mayue) of twenty cubits, Hdt. 3, 60. Eikoo.récoapec, neut. a, (elxooTpec) twenty-four, Diod. TEikooitpeic, neut. -tpia, (eixoct) Tpeic) twenty-three, Ath. 585 B., Eixocépyviog, ov, (eikoor, dépyvid) of twenty fathoms, Xen. Cyn. 2, 5. Eixcopoc, ov, poet. éerx., with twenty oars, Od. 9, 322, cf. mevTyKéy-Topoc. Eixoar#, aia, aiov, (eikooréc) on the twentieth day, Hipp. Eixoar#, fic, 7, V. sub eixoorée I EixoaroéBdouos, ov, (eikooréc, 8 dowoc) the twenty-seventh, Plut.2,1027E, EixoAdyoc, 6,7, (eixoaTH. 15% 3} one who collects the twentieth, a.ax O} to collector, Ar. Ran. 363. Eixoore, 7, 6 v, poet. écrxoord¢ the twentieth, Hom.—lUl. 7 eixoory, tax of a twentieth, Lat. vicesima, esp one levied by the Athenians on the imports and exports of the subject allies in lieu of tribute, ‘eix. Tov yey- vouévov, TOV Kata GdAaccav, Thuc. 6, 54; 7, 28, v. Béckh P. E. 2, 38. sq- tEixooréruproc, n, ov, (eixooré¢e Tétaptoc) the twenty-fourth, Plut. Eixorévye, ov, 6, (eixoar#, Ovéo Lat) a farmer of the eixoory, like ef KooToAoyoc, Arr. EixotoAoyéa, @, (eikdéc,.Aéye) te infer from probabilities, guess, Strab Hence EixoroAoyia, ac, 7, a probability, or an inference from one, Archyt. ap. Stob. Ecl. 1, 724. Eixétwe, Att. adv. part. perf. from forxa, eika, in all likelihood, probably, as may be expected, naturally : fairly, reasonably, Aesch. Supp. 403, anc freq. in Thuc.: eixétwe¢ &yet, "tis reasonable, Eur. J. T. 911, cf. Or. 737: oft. followed by yap, Wolf. Dem. Lept. p. 252. Eixréov, verb. Adv. from exw, one must yield, Philo. TEXIX, V. sq. Eixtov, 3 dual perf., éxro, 3 dual plqpf., éxro, 3 sing. plqpf. c. pass. Signs from six, etc., to be readily yielded, pliable, Themist. ELEQ, a pres. which appears in imperf. eixe, it appeared, seemed good, only in Il. 18, 520; for its deriv. ten ses v. sub govxa. EPKQ, f. -S0, to yield, give way, draw back, retire, Hom., more strongly éricow eixery, Il. 5, 606; c. dat. pers. et gen. loci, und’ elxete yap-bung ’Apyeiotc, shrink not from the fight for them, Il. 4, 509, cf. 5, 348, elke Tpoldpov, retire from the door, Od. 18, 10, so etx. revi rH¢ 6000, Hat. 2, 80: c. dat. pers. et inf., Od. 5, 332; also absol., esp. of retreating, making way, rising from one’s seat out of respect, Il. 24, 100, Od. 2, 14: later also with éx: hence metaph. c. gen. elkety Ovjod, to withdraw from passion, give it up, Soph. Ant. 714, although Herm. reads ἀρχού, with Ald., in next sense—ll. to submit to, obey, follow, very freely in Hom, c. dat.,e. g. dug ovvy, dppadiarg, aidot elkerr, to give way to, yield to passion, folly, s'oth, sense of shame, and free. in Tag.: hence also of any impulse, διαλία, following his own bent, Il. 9, 593: 80 TH jAtKin eix. Hdt. 7, 18: also Bin” kal Kdptet Elxecy, to give one’s self up to one’s might and strength, trust therein, Od. 13, 143, revin elxwy, biased, impelled by poverty, Od. 14, 157. As this implies a state of subjection, hence—Ill. to be under, be weaker or inferior, tivé Ti, to another in a thing, Il. 22, 459, Od. 11, 515: also c. dat. rei, elxevy mddecat, to be less swift of foot, Od. 14, 221: hence in genl. to be conquered, excelled by, rive.—lYV. transit. to yield up, abandon, resign, Tivi TL, ll. 23, 337: in genl. to give, grant, allow, Lat. concedere, sAodv Tivt, Soph. Phil. 465; so too Id. O. C. 172, Plat. Legg. 781 A. (Elka of. has the digamma in Hom., so that it is well compared to Germ. weichen, Anglo-Sax. vican, and prob. to our weak.) Eixéy, %, gen. dvoc, acc. 6va, etc.; also poet. and Ion. gen. eixotc, acc. eix@, acc. pl. eixovc, but with no nom. eix@ in use, Valck. Phoen. 457, (Zo1-Ka) a figure, image, likeness, of a picture or statue, Hdt. 2, 130, 143, etc.: of needlework, Eur. I. T. 223.—I. anything like, a similitude, semblance, phantom, Eur. H. F. 1002.—2. a simile, Ar. Nub. 559, and Plat., cf Arist. Rhet. 3, 4—IL. eixéva, as adv. after the manner of, like, Lat. instar, desponativ eixova, Plat. Crat. 400 C. Hike, part. of Zovxa, q. v. Eiia, eiAduny, late 1 aor. act. and md. of aipéw formed from 2 aor., v. Buttm. Catal. p. 9. EiAadév, adv. (etAn)=tAnddv, Hat. 172. EiAadév, ov, alsowr. IAaioc, name of a month among the Delphians, Tocer. HWAdrivdla, f. -daw, (elAarivn) to feast, revel, esp. in a large company, to be a guest, Od. 2, 57; 17, 536, and Pind. Hence EiAdrivacrie, ob, 6, aafeaster, guest, booon-companion, II. 17, 577. Eldexivn, ne, 7, afeast, given by a single host, Hom., who distinguishes it from ydayoc and épavoc, but comprehends all three in dac, Od. 1, 226. (Usu. deriv. from wivewy Kar’ eiiag: acc. to others from AdmTw.) EiAap, apos, 76, (eiAw) orig. a covering, wrapping round: hence a protection, defence, vyOv Te Kai avTov, a Shelter for ship and crew, Il. 7, 338, etc.: also a fence, defence against a thing, kuaroc, Od. 5, 257, cf. Buttm. Lexil. v. eiAeiv 9. Eidapyéw, 6, to command a squadron of horse, Theb. word in Inscr., v. Müller Orchom. 470, sq.: from EtAdpyne, ov, 6, (etAn, apyw) a leader, commander of a troop or squadron of horse, esp. at Thebes; cf. iA. EiAaridne,=’Edarione, Pind. Biddrivoc, 7, ov, poet. for éAdrivoc, of fir or pine, Hom. EiAeyuac for 2éAeyua:, perf. pass. from Aéyo. Eideibvuia, ac, 7, Ilithyia, the goddesses of child-birth, who comes to aid those who are bringing forth: Hom. mentions more than one, and calls them daughters of Hera (Juno) in Il. 11, 270; 19, 119; Hes. Th. 922 speaks of one, daughter of Zeus (Jupiter) and Hera (Juno); in Pind. also 'HAei-Syca and' EAevdo, in Anth. HiApGuca, Argiyy EdAsovia j=the Roman Luci-ra; later made identical with Diana. Botigers Iithyia, Weirn. 1799. EIAl A quasi-participial form, ef. dyuva, dprvuca, from éAetoecbar, éAnAv0oévat.) Hence EiAedviag roAcc, 7, Ilithyiopolis, a city of Aegypt, Diod. S., Strab. Eitébviov, ov, 76, (ElAeiOvia) a temple of Ilithyia. EiAsde, od, 6, (elAéw) a grievous disease of the intestines, Lat. Neus volvulus, Hipp., and Aretae—II. a lurking place, den of animals, v. elAvog.—ill. a table or block used in slaughtering, a dresser, V. éhedc. EiAéacov, ov, 76, Lesium, a city of Boeotia, Il. 2, 499. Eitéw, Att. eiAéw, lengthd. form from eiAw, q. Vv. Eitéa, (€iAn) to sun. EiAeadne, e¢, (eiAéw) eidoc Eitéa, (eidoc) to sun. EiAn, 1S) patag. EiAn, 1S) patag. EiAn, ne; 7, the sun’s warmth, Ar. Vesp. 772; warmth in gen.; v. en, ahéa. EiAydov and siAnda, adv. (etAn)= iAndov.—il. (eiAéw) by rolling along, Anth. ElAnbeoéw, G,=eiAéw, to sun, baskin the sun, Hipp. : from EidAnbepie, &¢, (eiAn, 0épw) warmed by the sun, warm, Hipp. : from Epyowat: hence eiA7jAoub-ev, 1 plur. perf. Ep. for éAnAtayev, Hom. EiAnua, atoc, 76, (eiAéw) a veil, covering, wrapper, Lat. mvolucrum, ap. Stob. p. 197, 55. Il—eiAedc 1, Hipp. —Ill, late, a vault. Hence EiAnuarixoc, 4, 6v, vaulted, groined, arched. EiAnuapat, for AéAnupaz, perf. pass. of Aau Pave. Eianate, ewe, 7, Att. eid, (eiAéw) a winding, rolling: a whirl-wind. EiAnate, ewe, 7 (elAéw) a warming, sunning, Lat. apricatio: in gen). warmth, heat, Plat, Rep. 380 E. Eidnriée, 7, ov, Att. eiA rolling one’s self or others, (Qa, wrigglng animals, Arist. H. A.: from Eihyzoc, 7, 6v, Att. cid. (eiAéw) wound, twisted, twined.—II. vaulted, arched; late. EiAnoa, for A€Anoa, perf. act. of apuBava. EiAnya, for AéAnya, perf. act. of hayxavw. Kiktyyidw and etAryyoc, 6, later forms of iAvyy. EiAryua, atoc, 76, —u6¢, ov, 6, adj. —yaTtoon¢, €¢, etc., poet. and Jon, for Ly. tHiacyuar, perf. pass. from éA/saw. Eidixe, eooa, ev, and elAtcoes- Onc, €¢,=EAIK. Eidixe, eooa, ev, and elAtcoes- Onc, €¢,=EAIK. Eidixe, eooa, (stan, xpivw) examined by the Sun's light, tested, found genuine; hence—Jl. unmixed, Plat. Symp. 211 E; distinct, separate, piAa Xen. Cyr. 8, 5, 14.—2. pure, clear, un-corrupted, Hipp., Plat. ete.—3. perfect, entire, Plat. Ax. 370 C.—4. distinct, palpable, sheer; adexia, Xen. Mem. 2, 2, 3. Adv. —vide, of itself, absolutely. Plat. Rep. 477 A. The form of Arptvéu, et Arptvéu, etc., is more rare, though etymology is for it, and the best MSS. of Plato usu. have it. [cf. évévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévévév Eiduovia, ac, 7, Arg. for EiAeiOuia EdAurrodng,-ov; 6, later form for sq Ejiirove, 6,4, rovv, 76, gen. rodoc (eitAw, move) trailing-footed, esp. trawl: ing the hinder feet heavily along in walking, in Hom. (orly in dat. and acc plur.) always epith. of oxen, which trail along and plait their hind-legs as they go, v. Hipp. 785 C: absol. or owen, kine, Theocr. 25, 131; Eupol Col. 5, also uses it of women. EiAtokoiro, ewc, 9, (etAn, oxo TOW) a blind-dizziness, Lat. vertigo, elsewh. exorodivia. TEiAvcode, od, 6, Lissus, masc. p n., Qu. Sm. 1, 228. Eitiooa, poet. and Ion: for éAicow, Tl. 12, 49. Elhitevijc, éc, epith. of the plant dypwortic, Vheocr. 13, 42, acc. to some from éAo¢ and Telvw, stretching or spreading through marshes; others from eiAw and reiveo, spreading by twists and tendrils, like ivy; the first more prob, as dypworte is 2 kind of couch-grass. EiAiyaro, Jon. 3 pl. plqpf. pass. from éAicou, for eiA Tévévov, | aor. act. of Akw from a theme *éAKvo. TÉvévov, | aor. pass. of Axw, v. foreg. Bees ElAAde, 7,=lAdw, idAdc, ub. TÉvévov, less usu. 1 aor. act. from &A«Kw than eiAKvoa. EfAov and eiAéuny, aor. 2 crv. and mid. of aipéw, Hom. Eiéredov, ov, 76, rarer form for Gethéredov. EiAoya, Att. perf. from Aéyw. EiAvdwée, od, 0, (elAvw) a lurking place, den, Nic. EiAdua, aroc, 76, (elAvw) a cover wrapper, dress, clothing, Od. 6, 179 and Ap. Rh. TÉvévov, | aor. pass. from eiAdo. EiAvotc, 0d, 6,=cidvOucc, a lurking place, den, Xen. Cyn. 5, 16. Eide, boc, 7,=lAvc, mire, a morass. [o Valck. Ad. p. 248.] TÉvévoc, | aor. pass. part. from eldbo. EiAvotc, ewe, 7, Att. etfA., (elAtw) =elAnowc Also a creeping. Eidvordouat, = avor., for which it is almost always av., to wriggle along, crawl like a worm. Hence EiAvoropa, arog, TO, a worm-like wriggling motion. Eihiooo, = eidtvw, to roll along, wind, whirl, Tl. 20, 492.—II. intr. te roll one’s self forth or along, to whirl about, of blazing torch-light, Hes. Sc. EiAvodo, 6,—foreg., Il. 11, 156. EVAY’Q, Att. eiAvo, f. -dow : pert pass. elAdwar: aor. pass. part. eldvo Geic. To wind or wrap a person or thing rownd, enfold, enwrap, cover, very rare in act., as only once in Hom. viz. Il. 21, 319, wédde uty abtov et Qbo0 Waud0orcr (and this might be referred to catetAdw). Pass. to wrap one’s self rownd or about, be concealed or covered, Hom. esp. in part. perf. ei- Avpévoc as eld. Paudbo, buried; also eld. odkeol, ZaAK@, covered with shields, brass; eA. vuKti, vepé?n, veiled, shrouded in night, cloud: alsc ELAQ practi Kal Koviare eiAvTo, Il. 16, 640, ef, Od. 5, 403 ELAQ Also pass. to wind, wiggle, creep, or crawl along, Soph. Phil. 289, 701, Metagen. Thur. 1, 4. Akin to ei2u, eiAéw, etc.: Buttm. exil. in voc., assumes that eiAiw had orig. only the sign of wrapping, enfolding, éAtw, that of twisting together or winding, which agrees with fomer’s use: but later they were confused: v. efAw, fin.) [0 in Hom., except in 3 pl. perf. pass. e/Avatas: in pres., which is not found in Hom., ob, 0 in Soph.: Hin Metag. 1. c., cf. Jac. A. P. p, 588.] ; El’ AQ, also efAAw, and sometimes tAAw (q.v:). more freq. efAév, Att. elAéw, esp. in act., and in Theocr.: fut. elAjow: aor. 1, 3 plur. éAcav, inf. Acar, Ep. éAcat, part. éAcac, Hom.: perf. pass. &eAwaz, Il.: aor. Pass. édAnyv, IL, inf. GAjvat, dAnjpevat, Il., part. ddeic, eioa, év, Hom. ; in prose, also aor. 1 eiA“Onv, but prob. only in compos., cf. KatetAéo : plqpf. 3 sing. 6AnTo, Ap. Rh.: an aor. 1 mid. 7Acauny, and a still more strange aor. 2 7Aedunv, are quoted only from Simon, and Ibyc., v. subvoce. Radical. Sign of act. to roll or twist tight up, hence to press hard or close, e.g. of a warrior who presses the enemy close, Il. 8, 215; Aadv Kara rel(yea EAoat, to force the host back to the walls, Il. 21, 295, cf. 225; so Kara Tpbuvac or éxt rptuvyoryr, Il. 1, 409, etc.: to force together: hence to coop, block up, shut up in a thing, crowd together, évi oni, évi oni, év oreiver, Od. 12, 210; 22, 460; c. dat. only, Il. 18, 294: metaph. of a storm, which drives a ship along or about, Il. 2, 294, Od. 19, 200: via kepavv@ éAcac, striking the ship with a thunderbolt, Od. 5, 132; 7, 250. In act. Hom. has only e/Aéa, never ciAw.—ll pass. and mid. to crowd, be rolled all up together, to throng together, Il. 5, 782: to be shut, cooped up or in, of the besieged, Il. 5, 203, Evi vvvoi, Il. 12, 38, é¢ worapov el- Aevvto, they were pushed into the river, Il. 21, 8: metaph., Avd¢ Bov- Ajowy éseApévoc, straitened, held in check by the counsels of Jupiter, Il. 13, 524: to throng together, assemble, crowd thackly together, dpi Avoundea eiAd- ue vot, Il. 5, 782: this sign is very free in Homer, in aor. pass. éAnv, esp. of a routed army; which however does not justify us in inferring a sign to retreat, recoil, as some have done in Il. 5, 823, etc.: drev bdwp, water collected, ponded, Il. 23, 420; also to draw one’s self together, crouch, cower, im’ donidt, Il. 13, 508; 20, 278; also ’AyiAja dAele péver, collecting himself he ated the attack of Achilles, Il. 21, 571; so of a lion which gathers itself for a bound, Il.
+
+=====
+
+Title: CALIFORNIA AIR RESOURCES BOARD
+Source: United States Government
+
+CALIFORNIA AIR RESOURCES BOARD 
+
+SIP COMPLETENESS CHECKLIST 
+
+(Electronic Format) 
+
+*** TO BE COMPLETED BY DISTRICT AND RETURNED TO ARB *** 
+
+All rules submitted to the EPA as State Implementation Plan (SIP) revisions must be supported by certain information 
+
+and documentation for the rule packages to be deemed complete for review by the EPA. Rules will not be evaluated for 
+
+approvability by the EPA unless the submittal packages are complete. To assist you in determining that all necessary 
+
+materials are included in rules packages sent to the ARB for submittal to the EPA, please fill out the following form and 
+
+include it with the rule package you send ARB. See the ARB's Guidelines on the Implementation of the 40 CFR 51, 
+
+Appendix V, for a more detailed explanation than is provided here. Adopted rules and rule amendments should be 
+
+checked against U.S. EPA's Guidance Document for Correcting Common VOC & Other Rule Deficiencies (Little Blue 
+
+Book, August 21, 2001) to ensure that they contain no elements which will result in disapproval by EPA. 
+
+District: Sacramento Metropolitan Air Quality Management District 
+
+Rule No: 414 
+
+Rule Title: Water Heaters, Boilers and Process Heaters Rated Less than 1,000,000 Btu per Hour 
+
+Date Adopted or Amended: Amended March 25, 2010 
+
+ADMINISTRATIVE MATERIALS 
+
+Note: All documents should be in electronic format. Items that have signatures, initials, or stamps may be scanned. 
+
+ Not 
+
+Attached Attached N/A 
+
+ COMPLETE COPY OF THE RULE: Provide an unmarked copy of the entire 
+
+rule as adopted or amended by your District Board. 
+
+ UNDERLINE AND STRIKEOUT COPY OF THE RULE: If an amended rule, 
+
+provide a complete copy of the rule indicating in underline and strikeout 
+
+format all language which has been added, deleted, or changed since the rule 
+
+was last adopted or amended. 
+
+ COMPLETE COPY OF THE REFERENCED RULE(S): For any rule which 
+
+includes language specifically referencing another rule, a copy of that other 
+
+rule must also be submitted, unless it has already been submitted to EPA as 
+
+part of a previous SIP submittal. 
+
+ PUBLIC NOTICE EVIDENCE: Include a copy of the local newspaper clipping 
+
+certification(s), stating the date of publication, which must be at least 30 days 
+
+before the hearing. As an alternative, include a copy of the actual published 
+
+notice of the public hearing as it appeared in the local newspaper(s). In this 
+
+case, however, enough of the newspaper page must be included to show the 
+
+date of publication. The notice must specifically identify by title and number 
+
+each rule adopted or amended. 
+
+ RESOLUTION/MINUTE ORDER: Provide the Board Clerk certified resolution 
+
+or minute order. This document must include certification that the hearing 
+
+was held in accordance with the information in the public notice. It must also 
+
+list the rules that were adopted or amended, the date of the public hearing, 
+
+and a statement of compliance with California Health and Safety Code 
+
+Sections 40725-40728 (Administrative Procedures Act). 
+
+ PUBLIC COMMENTS AND RESPONSES: Submit copies of written public 
+
+comments made during the notice period and at the public hearing. Also 
+
+submit any written responses prepared by the District staff or presented to the 
+
+District Board at the public hearing. A summary of the public comments and 
+
+responses is adequate. If there were no comments made during the notice 
+
+period or at the hearing, please indicate N/A to the left. 
+ 
+
+5/1/2002 
+
+CALIFORNIA AIR RESOURCES BOARD 
+
+SIP COMPLETENESS CHECKLIST 
+
+(Electronic Format)
+
+TECHNICAL MATERIALS 
+
+ Not 
+
+Attached Attached N/A 
+
+ RULE EVALUATION FORM: See instructions for completing the Rule 
+
+Evaluation Form and the accompanying sample form. 
+
+ NON-EPA TEST METHODS: Attach all test methods that are referenced in 
+
+your rule that do not appear in 40 CFR 51, 60, 61, 63, or have not been 
+
+previously submitted to EPA. EPA methods used in other media such as 
+
+SW846 for solid waste are not automatically approved for air pollution 
+
+applications. Submittal of test methods that are not EPA-approved should 
+
+include the information and follow the procedure described in Region 9’s 
+
+“Test Method Review & Evaluation Process.” 
+
+ MODELING SUPPORT: Provide if appropriate. In general, modeling support 
+
+is not required for VOC and NOx rules to determine their impacts on ozone 
+
+levels. Modeling is required where a rule is a relaxation that affects large 
+
+sources (> 100 TPY) in an attainment area for SO2, directly emitted PM10, 
+
+CO, or NOx (for NO2 purposes). In cases where EPA is concerned with the 
+
+impact on air quality of rule revisions which relax limits or cause a shift in 
+
+emission patterns in a nonattainment area, a reference back to the approved 
+
+SIP will be sufficient provided the approved SIP accounts for the relaxation 
+
+and provided the approved SIP used the current EPA modeling guidelines. If 
+
+current EPA modeling guidelines were not used, then new modeling may be 
+
+required. 
+
+ ECONOMIC AND TECHNICAL JUSTIFICATION FOR DEVIATIONS FROM 
+
+EPA POLICIES: The District staff report or other information included with 
+
+the submittal should discuss all potential relaxations or deviations from RACT, 
+
+RACM, BACT, BACM, enforceability, attainment, RFP, or other relevant EPA 
+
+requirements. This includes, for example, demonstrating that exemptions or 
+
+emission limits less stringent than the presumptive RACT (e.g., a CTG) meet 
+
+EPA’s 5 percent policy, and demonstrating that all source categories 
+
+exempted from a RACM/BACM rule are de minimus according to EPA’s 
+
+RACM/BACM policy. 
+
+ ADDITIONAL MATERIALS: Provide District staff reports and any other 
+
+supporting information concerning development of the rule or rule changes. 
+
+This information should explain the basis for all limits and thresholds 
+
+contained in the rule.
