@@ -237,6 +237,11 @@ export async function handleRequest(req, res) {
       return handleVerifyCode(body, res);
     }
 
+    if (req.method === "POST" && url.pathname === "/api/auth/verify-link") {
+      const body = await readJsonBody(req);
+      return handleVerifyLink(body, res);
+    }
+
     if (req.method === "GET") {
       return serveStatic(url.pathname, res);
     }
@@ -363,17 +368,21 @@ async function handleSendVerificationCode(payload, res) {
     return sendJson(res, 400, { error: "Enter a valid email address." });
   }
 
-  if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM_ADDRESS) {
-    return sendJson(res, 400, {
-      error: "Email verification is not configured. Set RESEND_API_KEY and EMAIL_FROM_ADDRESS."
-    });
-  }
-
   const state = readAuthVerificationState();
   const code = generateVerificationCode();
+  const token = generateVerificationToken();
   const expiresAt = Date.now() + 10 * 60 * 1000;
-  state.pending[email] = { code, expiresAt };
+  state.pending[email] = { code, token, expiresAt };
   writeJsonFile(authVerificationFile, state);
+  const verifyUrl = `${appBaseUrl}/?verify_email=${encodeURIComponent(email)}&verify_token=${encodeURIComponent(token)}`;
+
+  if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM_ADDRESS) {
+    return sendJson(res, 200, {
+      ok: true,
+      message: "Email sender not configured. Use the verification link below.",
+      verifyUrl
+    });
+  }
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -396,7 +405,11 @@ async function handleSendVerificationCode(payload, res) {
     });
   }
 
-  return sendJson(res, 200, { ok: true, message: "Verification code sent." });
+  return sendJson(res, 200, {
+    ok: true,
+    message: "Verification code sent.",
+    verifyUrl
+  });
 }
 
 function handleVerifyCode(payload, res) {
@@ -421,6 +434,35 @@ function handleVerifyCode(payload, res) {
 
   if (String(record.code) !== code) {
     return sendJson(res, 400, { error: "Incorrect verification code." });
+  }
+
+  delete state.pending[email];
+  writeJsonFile(authVerificationFile, state);
+  return sendJson(res, 200, { ok: true, verified: true });
+}
+
+function handleVerifyLink(payload, res) {
+  const email = String(payload?.email || "").trim().toLowerCase();
+  const token = String(payload?.token || "").trim();
+
+  if (!isValidEmail(email) || !token) {
+    return sendJson(res, 400, { error: "Invalid verification link." });
+  }
+
+  const state = readAuthVerificationState();
+  const record = state.pending[email];
+  if (!record) {
+    return sendJson(res, 400, { error: "No verification request found for that email." });
+  }
+
+  if (Date.now() > Number(record.expiresAt || 0)) {
+    delete state.pending[email];
+    writeJsonFile(authVerificationFile, state);
+    return sendJson(res, 400, { error: "Verification link expired. Request a new one." });
+  }
+
+  if (String(record.token || "") !== token) {
+    return sendJson(res, 400, { error: "Invalid verification link." });
   }
 
   delete state.pending[email];
@@ -997,6 +1039,10 @@ function roundCurrency(value) {
 
 function generateVerificationCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function generateVerificationToken() {
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`;
 }
 
 function isValidEmail(email) {

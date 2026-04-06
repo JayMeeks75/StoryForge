@@ -60,6 +60,7 @@ const fallbackConfig = {
 let appConfig = fallbackConfig;
 const authUsersStorageKey = "storyforge_auth_users_v1";
 const authSessionStorageKey = "storyforge_auth_session_v1";
+const authPendingSignupStorageKey = "storyforge_auth_pending_signup_v1";
 
 const form = document.querySelector("#story-form");
 const storyOutput = document.querySelector("#story-output");
@@ -110,6 +111,7 @@ initialize();
 
 async function initialize() {
   syncAuthUi();
+  await handleVerificationFromUrl();
   await loadStatus();
   populateStoryTypeMenus();
   updateUiState();
@@ -445,6 +447,32 @@ function getAuthInput() {
   return { email, password };
 }
 
+function readPendingSignups() {
+  try {
+    return JSON.parse(localStorage.getItem(authPendingSignupStorageKey) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function writePendingSignups(pending) {
+  localStorage.setItem(authPendingSignupStorageKey, JSON.stringify(pending));
+}
+
+function setPendingSignup(email, password) {
+  const pending = readPendingSignups();
+  pending[email] = { password, createdAt: new Date().toISOString() };
+  writePendingSignups(pending);
+}
+
+function popPendingSignup(email) {
+  const pending = readPendingSignups();
+  const entry = pending[email];
+  delete pending[email];
+  writePendingSignups(pending);
+  return entry;
+}
+
 async function handleSignUp() {
   if (!authForm.reportValidity()) {
     return;
@@ -471,8 +499,13 @@ async function handleSignUp() {
 
     pendingVerificationEmail = email;
     pendingVerificationPassword = password;
-    authStatus.textContent = "Verification code sent. Check email and enter the 6-digit code.";
+    setPendingSignup(email, password);
     syncAuthUi();
+    if (data.verifyUrl) {
+      authStatus.innerHTML = `Verification link ready: <a href="${escapeHtml(data.verifyUrl)}" target="_self">Verify account</a>`;
+    } else {
+      authStatus.textContent = "Verification code sent. Check email and enter the 6-digit code.";
+    }
   } catch (error) {
     authStatus.textContent = error.message || "Could not send verification code.";
   }
@@ -501,9 +534,14 @@ async function handleVerifyEmail() {
       throw new Error(data.error || "Verification failed.");
     }
 
+    const pendingEntry = popPendingSignup(pendingVerificationEmail);
+    if (!pendingEntry?.password) {
+      throw new Error("Pending signup not found. Please sign up again.");
+    }
+
     const users = readAuthUsers();
     users[pendingVerificationEmail] = {
-      password: pendingVerificationPassword,
+      password: pendingEntry.password,
       verified: true,
       verifiedAt: new Date().toISOString()
     };
@@ -545,6 +583,47 @@ function handleSignIn() {
 function handleSignOut() {
   setSessionEmail("");
   syncAuthUi();
+}
+
+async function handleVerificationFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const email = String(params.get("verify_email") || "").trim().toLowerCase();
+  const token = String(params.get("verify_token") || "").trim();
+
+  if (!email || !token) {
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/auth/verify-link", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, token })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Verification link failed.");
+    }
+
+    const pendingEntry = popPendingSignup(email);
+    if (!pendingEntry?.password) {
+      throw new Error("Signup session not found on this device. Sign up again, then verify.");
+    }
+
+    const users = readAuthUsers();
+    users[email] = {
+      password: pendingEntry.password,
+      verified: true,
+      verifiedAt: new Date().toISOString()
+    };
+    writeAuthUsers(users);
+    setSessionEmail(email);
+    authStatus.textContent = "Email verified and account created.";
+    window.history.replaceState({}, "", window.location.pathname);
+  } catch (error) {
+    authStatus.textContent = error.message || "Verification link failed.";
+    window.history.replaceState({}, "", window.location.pathname);
+  }
 }
 
 function escapeHtml(value) {
