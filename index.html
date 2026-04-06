@@ -20,26 +20,30 @@
       <section class="panel builder-panel">
         <div class="section-heading">
           <h2>Story Builder</h2>
-          <span class="badge">Kids story builder</span>
         </div>
 
         <form id="story-form" class="story-form">
           <fieldset class="option-group">
             <legend>Story Experience</legend>
-            <div id="story-type-grid" class="story-type-grid"></div>
+            <div class="experience-selects">
+              <label class="field-card">
+                <span>Family</span>
+                <select id="story-family" name="storyFamily">
+                  <option value="Classic" selected>Classic</option>
+                  <option value="Choose Your Way">Choose Your Way</option>
+                </select>
+              </label>
+              <label class="field-card">
+                <span>Experience</span>
+                <select id="story-type-select" name="storyType"></select>
+              </label>
+            </div>
             <p id="story-type-summary" class="group-summary">
-              Choose a story lane. Every "Choose Your Way" option is its own separate feature.
+              Pick a family and experience.
             </p>
           </fieldset>
 
-          <fieldset id="story-mode-group" class="option-group">
-            <legend>Story Mode</legend>
-            <div class="choice-grid">
-              <label><input type="radio" name="storyMode" value="Classic" checked> Classic Story</label>
-              <label><input type="radio" name="storyMode" value="Choose Your Way"> Choose Your Way</label>
-              <label><input type="radio" name="storyMode" value="Series Builder"> Series Builder</label>
-            </div>
-          </fieldset>
+          <input type="hidden" id="story-mode-hidden" name="storyMode" value="Classic">
 
           <fieldset class="option-group">
             <legend>Story Theme</legend>
@@ -118,7 +122,6 @@
       <section class="panel output-panel">
         <div class="section-heading">
           <h2>Story Output</h2>
-          <span id="word-target" class="badge">Target: 500-700 words</span>
         </div>
 
         <div class="meta-grid">
@@ -136,14 +139,6 @@
             <p id="billing-summary">Stories generated: 0</p>
           </article>
         </div>
-
-        <section class="dashboard-panel">
-          <div class="section-heading">
-            <h2>Feature Dash</h2>
-            <span class="badge">All story lanes</span>
-          </div>
-          <div id="feature-dashboard" class="feature-dashboard"></div>
-        </section>
 
         <article id="story-output" class="story-output">
           <h3>Environment Ready</h3>

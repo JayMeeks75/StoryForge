@@ -1,32 +1,9 @@
-const dashboardColumns = [
-  {
-    id: "live",
-    label: "Live",
-    description: "Ready-to-run lanes you can use as the current foundation."
-  },
-  {
-    id: "planned",
-    label: "Planned",
-    description: "Next-up features that fit the product directly."
-  },
-  {
-    id: "experimental",
-    label: "Experimental",
-    description: "Stretch concepts you can shape however you want."
-  }
-];
-
 const fallbackConfig = {
   ageRanges: {
     "4-5": "500-700 words",
     "6-7": "700-950 words",
     "8": "950-1200 words"
   },
-  storyModes: [
-    { id: "Classic", label: "Classic Story" },
-    { id: "Choose Your Way", label: "Choose Your Way" },
-    { id: "Series Builder", label: "Series Builder" }
-  ],
   storyExperiences: [
     {
       id: "Adventure",
@@ -35,6 +12,14 @@ const fallbackConfig = {
       description: "Fast-moving quests with bright, playful discoveries.",
       recommendedMode: "Classic",
       implementationStage: "live"
+    },
+    {
+      id: "AdventureChooseYourWay",
+      label: "Adventure Choose Your Way",
+      family: "Interactive",
+      description: "A branching quest with kid-friendly choices at every turn.",
+      recommendedMode: "Choose Your Way",
+      implementationStage: "planned"
     }
   ]
 };
@@ -42,29 +27,28 @@ const fallbackConfig = {
 let appConfig = fallbackConfig;
 
 const form = document.querySelector("#story-form");
-const wordTarget = document.querySelector("#word-target");
 const storyOutput = document.querySelector("#story-output");
 const generateButton = document.querySelector("#generate-button");
 const creditBalance = document.querySelector("#credit-balance");
 const billingSummary = document.querySelector("#billing-summary");
 const tierList = document.querySelector("#tier-list");
-const storyTypeGrid = document.querySelector("#story-type-grid");
 const storyTypeSummary = document.querySelector("#story-type-summary");
 const modeSummary = document.querySelector("#mode-summary");
-const featureDashboard = document.querySelector("#feature-dashboard");
-const modeFieldset = document.querySelector("#story-mode-group");
+const storyFamilySelect = document.querySelector("#story-family");
+const storyTypeSelect = document.querySelector("#story-type-select");
+const storyModeHidden = document.querySelector("#story-mode-hidden");
 
 form.addEventListener("submit", handleGenerate);
 form.addEventListener("change", updateUiState);
-storyTypeGrid.addEventListener("change", syncRecommendedMode);
-featureDashboard.addEventListener("click", handleDashboardAction);
+storyFamilySelect.addEventListener("change", () => {
+  renderStoryExperiences();
+  updateUiState();
+});
 
 initialize();
 
 async function initialize() {
   renderStoryExperiences();
-  renderStoryModes();
-  renderFeatureDashboard();
   updateUiState();
   await loadStatus();
   await loadBillingStatus();
@@ -83,8 +67,6 @@ async function loadStatus() {
     if (data.config) {
       appConfig = normalizeConfig(data.config);
       renderStoryExperiences();
-      renderStoryModes();
-      renderFeatureDashboard();
       updateUiState();
     }
   } catch (error) {
@@ -100,152 +82,54 @@ function normalizeConfig(config) {
   const storyExperiences = Array.isArray(config.storyExperiences) && config.storyExperiences.length
     ? config.storyExperiences
     : fallbackConfig.storyExperiences;
-  const storyModes = Array.isArray(config.storyModes) && config.storyModes.length
-    ? config.storyModes
-    : fallbackConfig.storyModes;
 
   return {
     ageRanges: config.ageRanges || fallbackConfig.ageRanges,
-    storyModes,
     storyExperiences
   };
+}
+
+function getFamilyExperiences(selectedFamily) {
+  const family = selectedFamily || "Classic";
+
+  return appConfig.storyExperiences.filter((experience) => {
+    const recommendedMode = (experience.recommendedMode || "").toLowerCase();
+
+    if (family === "Classic") {
+      return recommendedMode === "classic";
+    }
+
+    return recommendedMode === "choose your way";
+  });
+}
+
+function renderStoryExperiences() {
+  const selectedFamily = storyFamilySelect.value || "Classic";
+  const experiences = getFamilyExperiences(selectedFamily);
+  const previousType = storyTypeSelect.value;
+
+  storyTypeSelect.innerHTML = experiences
+    .map(
+      (experience) => `<option value="${escapeHtml(experience.id)}">${escapeHtml(experience.label)}</option>`
+    )
+    .join("");
+
+  if (experiences.some((experience) => experience.id === previousType)) {
+    storyTypeSelect.value = previousType;
+  }
+
+  if (!storyTypeSelect.value && experiences[0]) {
+    storyTypeSelect.value = experiences[0].id;
+  }
 }
 
 function updateUiState() {
   const selections = getSelections();
   const storyExperience = getStoryExperience(selections.storyType);
-  const targetRange = appConfig.ageRanges[selections.ageBand] || fallbackConfig.ageRanges[selections.ageBand];
 
-  wordTarget.textContent = `Target: ${targetRange}`;
+  storyModeHidden.value = storyExperience.recommendedMode || "Classic";
   storyTypeSummary.textContent = `${storyExperience.label}: ${storyExperience.description}`;
-  modeSummary.textContent = `${selections.storyMode} mode for ${storyExperience.label}`;
-  renderFeatureDashboard();
-}
-
-function renderStoryExperiences() {
-  const experiences = appConfig.storyExperiences;
-  const selectedExperience = getSelections().storyType || experiences[0]?.id;
-
-  storyTypeGrid.innerHTML = experiences
-    .map(
-      (experience) => `
-        <label class="story-type-card">
-          <input
-            type="radio"
-            name="storyType"
-            value="${escapeHtml(experience.id)}"
-            ${experience.id === selectedExperience ? "checked" : ""}
-          >
-          <span class="story-type-family">${escapeHtml(experience.family)}</span>
-          <strong>${escapeHtml(experience.label)}</strong>
-          <span class="story-type-description">${escapeHtml(experience.description)}</span>
-        </label>
-      `
-    )
-    .join("");
-}
-
-function renderStoryModes() {
-  const selectedMode = getSelections().storyMode || appConfig.storyModes[0]?.id;
-  const modeGrid = modeFieldset.querySelector(".choice-grid");
-
-  modeGrid.innerHTML = appConfig.storyModes
-    .map(
-      (mode) => `
-        <label>
-          <input
-            type="radio"
-            name="storyMode"
-            value="${escapeHtml(mode.id)}"
-            ${mode.id === selectedMode ? "checked" : ""}
-          >
-          ${escapeHtml(mode.label)}
-        </label>
-      `
-    )
-    .join("");
-}
-
-function syncRecommendedMode() {
-  const selections = getSelections();
-  const storyExperience = getStoryExperience(selections.storyType);
-  const recommendedInput = form.querySelector(
-    `input[name="storyMode"][value="${cssEscape(storyExperience.recommendedMode)}"]`
-  );
-
-  if (recommendedInput) {
-    recommendedInput.checked = true;
-  }
-
-  updateUiState();
-}
-
-function renderFeatureDashboard() {
-  const selections = getSelections();
-
-  featureDashboard.innerHTML = dashboardColumns
-    .map((column) => {
-      const cards = appConfig.storyExperiences
-        .filter((experience) => experience.implementationStage === column.id)
-        .map((experience) => {
-          const isActive = experience.id === selections.storyType;
-
-          return `
-            <article class="feature-card${isActive ? " active" : ""}">
-              <div class="feature-card-top">
-                <span class="story-type-family">${escapeHtml(experience.family)}</span>
-                <span class="feature-mode-pill">${escapeHtml(experience.recommendedMode)}</span>
-              </div>
-              <h3>${escapeHtml(experience.label)}</h3>
-              <p>${escapeHtml(experience.description)}</p>
-              <button
-                type="button"
-                class="feature-select-button"
-                data-story-id="${escapeHtml(experience.id)}"
-                data-story-mode="${escapeHtml(experience.recommendedMode)}"
-              >${isActive ? "Selected" : "Use This"}</button>
-            </article>
-          `;
-        })
-        .join("");
-
-      return `
-        <section class="dashboard-column dashboard-column-${escapeHtml(column.id)}">
-          <div class="dashboard-column-header">
-            <h3>${escapeHtml(column.label)}</h3>
-            <p>${escapeHtml(column.description)}</p>
-          </div>
-          <div class="dashboard-column-cards">
-            ${cards || '<p class="empty-state">No features in this lane yet.</p>'}
-          </div>
-        </section>
-      `;
-    })
-    .join("");
-}
-
-function handleDashboardAction(event) {
-  const button = event.target.closest("[data-story-id]");
-  if (!button) {
-    return;
-  }
-
-  const storyInput = form.querySelector(
-    `input[name="storyType"][value="${cssEscape(button.dataset.storyId)}"]`
-  );
-  const modeInput = form.querySelector(
-    `input[name="storyMode"][value="${cssEscape(button.dataset.storyMode)}"]`
-  );
-
-  if (storyInput) {
-    storyInput.checked = true;
-  }
-
-  if (modeInput) {
-    modeInput.checked = true;
-  }
-
-  updateUiState();
+  modeSummary.textContent = `${storyModeHidden.value} mode for ${storyExperience.label}`;
 }
 
 async function loadBillingStatus() {
@@ -276,7 +160,7 @@ function renderTiers(tiers, freeTierClaimed) {
         <div class="tier-card">
           <div class="tier-copy">
             <strong>${escapeHtml(tier.name)}</strong>
-            <span>${escapeHtml(tier.credits)} credits • ${escapeHtml(tier.priceLabel)}</span>
+            <span>${escapeHtml(tier.credits)} credits - ${escapeHtml(tier.priceLabel)}</span>
           </div>
           <button
             type="button"
@@ -422,7 +306,6 @@ function renderStory(data) {
     <p><strong>Story experience:</strong> ${escapeHtml(data.storyTypeLabel)}</p>
     <p><strong>Story mode:</strong> ${escapeHtml(data.storyMode)}</p>
     <p><strong>Age band:</strong> ${escapeHtml(data.ageBand)}</p>
-    <p><strong>Target range:</strong> ${escapeHtml(data.wordRange)}</p>
     <p><strong>Character:</strong> ${escapeHtml(data.characterSummary)}</p>
     <p><strong>Credits remaining:</strong> ${escapeHtml(data.creditsRemaining)}</p>
     <ul>${datasetItems}</ul>
@@ -432,12 +315,10 @@ function renderStory(data) {
 
 function getSelections() {
   const formData = new FormData(form);
-  const defaultExperience = appConfig.storyExperiences[0];
-  const defaultMode = appConfig.storyModes[0];
 
   return {
-    storyType: formData.get("storyType") || defaultExperience?.id || "Adventure",
-    storyMode: formData.get("storyMode") || defaultMode?.id || "Classic",
+    storyType: formData.get("storyType") || "Adventure",
+    storyMode: formData.get("storyMode") || "Classic",
     storyTheme: formData.get("storyTheme"),
     fantasyWorld: formData.get("fantasyWorld"),
     characterName: formData.get("characterName"),
@@ -466,6 +347,3 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
-function cssEscape(value) {
-  return String(value ?? "").replaceAll("\\", "\\\\").replaceAll('"', '\\"');
-}
